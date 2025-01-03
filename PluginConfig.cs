@@ -96,11 +96,11 @@ public class PluginConfig
         enabledField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.modEnabled = e.value; division.interactable = e.value;};
         Plugin.modEnabled = enabledField.value; division.interactable = enabledField.value; 
 
-        BoolField SwapVariationIgnoreModField = new BoolField(config.rootPanel, "Swap variation ignores autoswitching?", "swapVariationIgnoreMod", true);
+        BoolField SwapVariationIgnoreModField = new BoolField(division, "Swap variation ignores autoswitch?", "swapVariationIgnoreMod", true);
         SwapVariationIgnoreModField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.SwapVariationIgnoreMod = e.value;};
         Plugin.SwapVariationIgnoreMod = SwapVariationIgnoreModField.value; 
 
-        BoolField ScrollVariationIgnoreModField = new BoolField(config.rootPanel, "Scroll variation ignores autoswitching?", "scrollVariationIgnoreMod", true);
+        BoolField ScrollVariationIgnoreModField = new BoolField(division, "Scroll variation ignores autoswitch?", "scrollVariationIgnoreMod", true);
         ScrollVariationIgnoreModField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.ScrollVariationIgnoreMod = e.value;};
         Plugin.ScrollVariationIgnoreMod = ScrollVariationIgnoreModField.value; 
 
