@@ -110,6 +110,10 @@ public class PluginConfig
 
         ConfigPanel revolverPanel = new ConfigPanel(division, "Revolver", "revolverPanel");
 
+        ConfigHeader revolverHeader = new ConfigHeader(revolverPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
+        revolverHeader.textSize = 16;
+        revolverHeader.textColor = Color.white;
+
         EnumField<KeyEnum> revolverVariant1Field = new EnumField<KeyEnum>(revolverPanel, "Revolver Variant 1 Bind", "revolverVariant1Bind", KeyEnum.None);
         revolverVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {Plugin.weaponKeyCodes[0,0] = convertKeyEnumToKeyCode(e.value);};
         Plugin.weaponKeyCodes[0,0] = convertKeyEnumToKeyCode(revolverVariant1Field.value);
@@ -139,6 +143,10 @@ public class PluginConfig
         //+---------+\\
 
         ConfigPanel shotgunPanel = new ConfigPanel(division, "Shotgun", "shotgunPanel");
+
+        ConfigHeader shotgunHeader = new ConfigHeader(shotgunPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
+        shotgunHeader.textSize = 16;
+        shotgunHeader.textColor = Color.white;
 
         EnumField<KeyEnum> shotgunVariant1Field = new EnumField<KeyEnum>(shotgunPanel, "Shotgun Variant 1 Bind", "shotgunVariant1Bind", KeyEnum.None);
         shotgunVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {Plugin.weaponKeyCodes[1,0] = convertKeyEnumToKeyCode(e.value);};
@@ -170,6 +178,10 @@ public class PluginConfig
 
         ConfigPanel nailgunPanel = new ConfigPanel(division, "Nailgun", "nailgunPanel");
 
+        ConfigHeader nailgunHeader = new ConfigHeader(nailgunPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
+        nailgunHeader.textSize = 16;
+        nailgunHeader.textColor = Color.white;
+
         EnumField<KeyEnum> nailgunVariant1Field = new EnumField<KeyEnum>(nailgunPanel, "Nailgun Variant 1 Bind", "nailgunVariant1Bind", KeyEnum.None);
         nailgunVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {Plugin.weaponKeyCodes[2,0] = convertKeyEnumToKeyCode(e.value);};
         Plugin.weaponKeyCodes[2,0] = convertKeyEnumToKeyCode(nailgunVariant1Field.value);
@@ -199,6 +211,10 @@ public class PluginConfig
         //+------------+\\
 
         ConfigPanel railcannonPanel = new ConfigPanel(division, "Railcannon", "railcannonPanel");
+
+        ConfigHeader railcannonHeader = new ConfigHeader(railcannonPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
+        railcannonHeader.textSize = 16;
+        railcannonHeader.textColor = Color.white;
 
         EnumField<KeyEnum> railcannonVariant1Field = new EnumField<KeyEnum>(railcannonPanel, "Railcannon Variant 1 Bind", "railcannonVariant1Bind", KeyEnum.None);
         railcannonVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {Plugin.weaponKeyCodes[3,0] = convertKeyEnumToKeyCode(e.value);};
@@ -230,6 +246,10 @@ public class PluginConfig
 
         ConfigPanel rocket_launcherPanel = new ConfigPanel(division, "Rocket Launcher", "rocket_launcherPanel");
 
+        ConfigHeader rocket_launcherHeader = new ConfigHeader(rocket_launcherPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
+        rocket_launcherHeader.textSize = 16;
+        rocket_launcherHeader.textColor = Color.white;
+
         EnumField<KeyEnum> rocket_launcherVariant1Field = new EnumField<KeyEnum>(rocket_launcherPanel, "Rocket Launcher Variant 1 Bind", "rocket_launcherVariant1Bind", KeyEnum.None);
         rocket_launcherVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {Plugin.weaponKeyCodes[4,0] = convertKeyEnumToKeyCode(e.value);};
         Plugin.weaponKeyCodes[4,0] = convertKeyEnumToKeyCode(rocket_launcherVariant1Field.value);
@@ -253,6 +273,5 @@ public class PluginConfig
         BoolField rocket_launcher3CycleIgnoreField = new BoolField(rocket_launcherPanel, "Autoswitch Variant 3 in Cycle", "ignoreRocket_launcher3InCycle", false);
         rocket_launcher3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.ignoreWeaponInCycle[4,2] = e.value;};
         Plugin.ignoreWeaponInCycle[4,2] = rocket_launcher3CycleIgnoreField.value;
-
     }
 }
