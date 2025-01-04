@@ -183,11 +183,12 @@ public class Plugin : BaseUnityPlugin
         {tempDisableAutoSwitch = true; weapon = MonoSingleton<GunControl>.Instance.currentWeapon;}
 
         //you have to do it like this, doing it the normal way just doesnt work for some reason... Causes KeyNotFoundException I think for some reason for some people unless we check if the key exists?
+        //If this fixes the issue of the mod not working, this will still be concerning and probably means for that same group of people that scrolling will not work properly.
         bool scrollEnabled = false;
         bool scrollVariation = false;
         bool scrollReversed = false;
 
-        Debug.Log("WeaponVariantBinds - attempting to load extra prefs");
+        //Debug.Log("WeaponVariantBinds - attempting to load extra prefs");
         if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollEnabled")) {scrollEnabled =   (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollEnabled"];}
         if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollVariations")) {scrollVariation = (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollVariations"];}
         if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollReversed")) {scrollReversed =  (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollReversed"];}
