@@ -1,6 +1,6 @@
 # WARNING
 
-This mod is in development. Expect issues. Contact me at discord: daemon8363 if you encounter problems.
+This mod is in development. Expect issues. Raise an issue on the github project or contact me at discord: daemon8363 if you encounter problems.
 
 This mod may conflict with other mods that add or remove weapons. I have attempted to accomodate for these mods, but neither I nor my programming prowess can guarantee compatibility.
 
