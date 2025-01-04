@@ -1,8 +1,8 @@
 # WARNING
 
-This mod is in development. Expect issues. Raise an issue on the github project or contact me at discord: daemon8363 if you encounter problems.
+This mod is in development. Expect issues. Raise an issue on the github project or contact me at discord preferably through the New Blood discord ultrakill-modding channel at: daemon8363
 
-This mod may conflict with other mods that add or remove weapons. I have attempted to accomodate for these mods, but neither I nor my programming prowess can guarantee compatibility.
+This mod may conflict with other mods that add or remove weapons. I have attempted to accomodate for these mods.
 
 # OVERVIEW
 
