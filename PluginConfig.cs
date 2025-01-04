@@ -20,8 +20,7 @@ public class PluginConfig
     public static KeyCode convertKeyEnumToKeyCode(KeyEnum value)
     {
         KeyCode code = KeyCode.None;
-        if (value.Equals(KeyEnum.Mouse4)) {code = KeyCode.Mouse3;} //default
-        else if (value.Equals(KeyEnum.Backspace)) {code = KeyCode.Backspace;}
+        if (value.Equals(KeyEnum.Backspace)) {code = KeyCode.Backspace;}
         else if (value.Equals(KeyEnum.Tab)) {code = KeyCode.Tab;}
         else if (value.Equals(KeyEnum.Escape)) {code = KeyCode.Escape;}
         else if (value.Equals(KeyEnum.Space)) {code = KeyCode.Space;}
@@ -76,6 +75,7 @@ public class PluginConfig
         else if (value.Equals(KeyEnum.Mouse2)) {code = KeyCode.Mouse1;}
         else if (value.Equals(KeyEnum.Mouse3)) {code = KeyCode.Mouse2;}
         else if (value.Equals(KeyEnum.Mouse4)) {code = KeyCode.Mouse3;}
+        else if (value.Equals(KeyEnum.Mouse5)) {code = KeyCode.Mouse4;}
         else if (value.Equals(KeyEnum.Mouse6)) {code = KeyCode.Mouse5;}
         else if (value.Equals(KeyEnum.Mouse7)) {code = KeyCode.Mouse6;}
         return code;

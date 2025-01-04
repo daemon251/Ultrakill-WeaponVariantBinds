@@ -15,6 +15,7 @@ namespace WeaponVariantBinds;
 
 //TO DO:
 //organize code
+//mouse 5 dont work probably
 
 //unequipped weapons cause problems
 
