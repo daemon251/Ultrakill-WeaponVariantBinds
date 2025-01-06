@@ -15,7 +15,8 @@ namespace WeaponVariantBinds;
 
 //TO DO:
 //organize code
-//mouse 5 dont work probably
+//some users' autoswitch doesnt work?
+//more keys
 
 //unequipped weapons cause problems
 
@@ -211,7 +212,7 @@ public class Plugin : BaseUnityPlugin
                 else if(ignoreWeaponInCycle[slot - 1, i] == true) {ignoreCount++;}
             }
             bool tooManyIgnores = false;
-            if(ignoreCount == slotList.Count) {tooManyIgnores = true;}
+            if(ignoreCount == slotList.Count) {tooManyIgnores = true; Debug.Log("WeaponVariantBinds - Too many igonres");}
 
             if(tooManyIgnores == false)
             {
@@ -250,7 +251,8 @@ public class Plugin : BaseUnityPlugin
         //enable auto switch if we find a change in weapon (done by the player)
         if(weapon != MonoSingleton<GunControl>.Instance.currentWeapon) 
         {
-            tempDisableAutoSwitch = false; //release the flood gates !!! (lets allow force switching a weapon)
+            tempDisableAutoSwitch = false; //lets allow force switching a weapon
+            Debug.Log("WeaponVariantBinds - old weapon: " + weapon + " new: " + MonoSingleton<GunControl>.Instance.currentWeapon);
         }
         weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
     }

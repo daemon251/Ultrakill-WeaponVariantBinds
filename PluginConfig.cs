@@ -15,7 +15,12 @@ public class PluginConfig
     {
         None, Backspace, Tab, Escape, Space, UpArrow, DownArrow, RightArrow, LeftArrow, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, 
         Alpha1, Alpha2, Alpha3, Alpha4, Alpha5, Alpha6, Alpha7, Alpha8, Alpha9, Alpha0, CapsLock,
-        RightShift, LeftShift, RightControl, LeftControl, RightAlt, LeftAlt, Mouse1, Mouse2, Mouse3, Mouse4, Mouse5, Mouse6, Mouse7
+        RightShift, LeftShift, RightControl, LeftControl, RightAlt, LeftAlt, Mouse1, Mouse2, Mouse3, Mouse4, Mouse5, Mouse6, Mouse7, //following is courtesy of tetriscat
+        BackQuote, EqualsSign, Minus, LeftBracket, RightBracket, Semicolon, Quote, Comma, Period, Slash, Backslash, 
+		Numlock, KeypadDivide, KeypadMultiply, KeypadMinus, KeypadPlus, KeypadEnter, KeypadPeriod, 
+		Keypad0, Keypad1, Keypad2, Keypad3, Keypad4, Keypad5, Keypad6, Keypad7, Keypad8, Keypad9, 
+		Home, End, PageUp, PageDown, Enter, 
+		F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15
     }
     public static KeyCode convertKeyEnumToKeyCode(KeyEnum value)
     {
@@ -78,8 +83,120 @@ public class PluginConfig
         else if (value.Equals(KeyEnum.Mouse5)) {code = KeyCode.Mouse4;}
         else if (value.Equals(KeyEnum.Mouse6)) {code = KeyCode.Mouse5;}
         else if (value.Equals(KeyEnum.Mouse7)) {code = KeyCode.Mouse6;}
+        
+        else if(value.Equals(KeyEnum.BackQuote)) {return KeyCode.BackQuote;} 
+        else if(value.Equals(KeyEnum.EqualsSign)) {return KeyCode.Equals;} 
+        else if(value.Equals(KeyEnum.Minus)) {return KeyCode.Minus;} 
+        else if(value.Equals(KeyEnum.LeftBracket)) {return KeyCode.LeftBracket;} 
+        else if(value.Equals(KeyEnum.RightBracket)) {return KeyCode.RightBracket;} 
+        else if(value.Equals(KeyEnum.Semicolon)) {return KeyCode.Semicolon;} 
+        else if(value.Equals(KeyEnum.Quote)) {return KeyCode.Quote;} 
+        else if(value.Equals(KeyEnum.Comma)) {return KeyCode.Comma;} 
+        else if(value.Equals(KeyEnum.Period)) {return KeyCode.Period;} 
+        else if(value.Equals(KeyEnum.Slash)) {return KeyCode.Slash;} 
+        else if(value.Equals(KeyEnum.Backslash)) {return KeyCode.Backslash;} 
+        else if(value.Equals(KeyEnum.Numlock)) {return KeyCode.Numlock;} 
+        else if(value.Equals(KeyEnum.KeypadDivide)) {return KeyCode.KeypadDivide;} 
+        else if(value.Equals(KeyEnum.KeypadMultiply)) {return KeyCode.KeypadMultiply;} 
+        else if(value.Equals(KeyEnum.KeypadMinus)) {return KeyCode.KeypadMinus;} 
+        else if(value.Equals(KeyEnum.KeypadPlus)) {return KeyCode.KeypadPlus;} 
+        else if(value.Equals(KeyEnum.KeypadEnter)) {return KeyCode.KeypadEnter;} 
+        else if(value.Equals(KeyEnum.KeypadPeriod)) {return KeyCode.KeypadPeriod;} 
+        else if(value.Equals(KeyEnum.Keypad0)) {return KeyCode.Keypad0;} 
+        else if(value.Equals(KeyEnum.Keypad1)) {return KeyCode.Keypad1;} 
+        else if(value.Equals(KeyEnum.Keypad2)) {return KeyCode.Keypad2;} 
+        else if(value.Equals(KeyEnum.Keypad3)) {return KeyCode.Keypad3;} 
+        else if(value.Equals(KeyEnum.Keypad4)) {return KeyCode.Keypad4;} 
+        else if(value.Equals(KeyEnum.Keypad5)) {return KeyCode.Keypad5;} 
+        else if(value.Equals(KeyEnum.Keypad6)) {return KeyCode.Keypad6;} 
+        else if(value.Equals(KeyEnum.Keypad7)) {return KeyCode.Keypad7;} 
+        else if(value.Equals(KeyEnum.Keypad8)) {return KeyCode.Keypad8;} 
+        else if(value.Equals(KeyEnum.Keypad9)) {return KeyCode.Keypad9;} 
+        else if(value.Equals(KeyEnum.Home)) {return KeyCode.Home;} 
+        else if(value.Equals(KeyEnum.End)) {return KeyCode.End;} 
+        else if(value.Equals(KeyEnum.PageUp)) {return KeyCode.PageUp;} 
+        else if(value.Equals(KeyEnum.PageDown)) {return KeyCode.PageDown;} 
+        else if(value.Equals(KeyEnum.Enter)) {return KeyCode.Return;} 
+        else if(value.Equals(KeyEnum.F1)) {return KeyCode.F1;} 
+        else if(value.Equals(KeyEnum.F2)) {return KeyCode.F2;}
+        else if(value.Equals(KeyEnum.F3)) {return KeyCode.F3;} 
+        else if(value.Equals(KeyEnum.F4)) {return KeyCode.F4;} 
+        else if(value.Equals(KeyEnum.F5)) {return KeyCode.F5;} 
+        else if(value.Equals(KeyEnum.F6)) {return KeyCode.F6;} 
+        else if(value.Equals(KeyEnum.F7)) {return KeyCode.F7;} 
+        else if(value.Equals(KeyEnum.F8)) {return KeyCode.F8;} 
+        else if(value.Equals(KeyEnum.F9)) {return KeyCode.F9;} 
+        else if(value.Equals(KeyEnum.F10)) {return KeyCode.F10;} 
+        else if(value.Equals(KeyEnum.F11)) {return KeyCode.F11;} 
+        else if(value.Equals(KeyEnum.F12)) {return KeyCode.F12;} 
+        else if(value.Equals(KeyEnum.F13)) {return KeyCode.F13;} 
+        else if(value.Equals(KeyEnum.F14)) {return KeyCode.F14;}
+        else if(value.Equals(KeyEnum.F15)) {return KeyCode.F15;}
         return code;
     }
+
+    // call for each EnumField (formats display names for some enums) 
+    //courtesy of tetriscat
+	private static void SetDisplayNames(EnumField<KeyEnum> field) 
+    {
+		field.SetEnumDisplayName(KeyEnum.Minus, "-");
+		field.SetEnumDisplayName(KeyEnum.EqualsSign, "=");
+		field.SetEnumDisplayName(KeyEnum.LeftBracket, "[");
+		field.SetEnumDisplayName(KeyEnum.RightBracket, "]");
+		field.SetEnumDisplayName(KeyEnum.CapsLock, "Caps Lock");
+		field.SetEnumDisplayName(KeyEnum.LeftShift, "Left Shift");
+		field.SetEnumDisplayName(KeyEnum.RightShift, "Right Shift");
+		field.SetEnumDisplayName(KeyEnum.LeftControl, "Left Control");
+		field.SetEnumDisplayName(KeyEnum.RightControl, "Right Control");
+		field.SetEnumDisplayName(KeyEnum.LeftAlt, "Left Alt");
+		field.SetEnumDisplayName(KeyEnum.RightAlt, "Right Alt");
+		field.SetEnumDisplayName(KeyEnum.BackQuote, "`");
+		field.SetEnumDisplayName(KeyEnum.Quote, "'");
+		field.SetEnumDisplayName(KeyEnum.Semicolon, ";");
+		field.SetEnumDisplayName(KeyEnum.Slash, "/");
+		field.SetEnumDisplayName(KeyEnum.Backslash, "\\");
+		field.SetEnumDisplayName(KeyEnum.Keypad0, "Keypad 0");
+		field.SetEnumDisplayName(KeyEnum.Keypad1, "Keypad 1");
+		field.SetEnumDisplayName(KeyEnum.Keypad2, "Keypad 2");
+		field.SetEnumDisplayName(KeyEnum.Keypad3, "Keypad 3");
+		field.SetEnumDisplayName(KeyEnum.Keypad4, "Keypad 4");
+		field.SetEnumDisplayName(KeyEnum.Keypad5, "Keypad 5");
+		field.SetEnumDisplayName(KeyEnum.Keypad6, "Keypad 6");
+		field.SetEnumDisplayName(KeyEnum.Keypad7, "Keypad 7");
+		field.SetEnumDisplayName(KeyEnum.Keypad8, "Keypad 8");
+		field.SetEnumDisplayName(KeyEnum.Keypad9, "Keypad 9");
+		field.SetEnumDisplayName(KeyEnum.KeypadDivide, "Keypad /");
+		field.SetEnumDisplayName(KeyEnum.KeypadMultiply, "Keypad *");
+		field.SetEnumDisplayName(KeyEnum.KeypadPlus, "Keypad Plus");
+		field.SetEnumDisplayName(KeyEnum.KeypadMinus, "Keypad Minus");
+		field.SetEnumDisplayName(KeyEnum.KeypadEnter, "Keypad Enter");
+		field.SetEnumDisplayName(KeyEnum.KeypadPeriod, "Keypad .");
+		field.SetEnumDisplayName(KeyEnum.Period, ".");
+		field.SetEnumDisplayName(KeyEnum.Comma, ",");
+		field.SetEnumDisplayName(KeyEnum.PageUp, "Page Up");
+		field.SetEnumDisplayName(KeyEnum.PageDown, "Page Down");
+		field.SetEnumDisplayName(KeyEnum.UpArrow, "Up Arrow");
+		field.SetEnumDisplayName(KeyEnum.DownArrow, "Down Arrow");
+		field.SetEnumDisplayName(KeyEnum.LeftArrow, "Left Arrow");
+		field.SetEnumDisplayName(KeyEnum.RightArrow, "Right Arrow");
+		field.SetEnumDisplayName(KeyEnum.Alpha0, "0");
+		field.SetEnumDisplayName(KeyEnum.Alpha1, "1");
+		field.SetEnumDisplayName(KeyEnum.Alpha2, "2");
+		field.SetEnumDisplayName(KeyEnum.Alpha3, "3");
+		field.SetEnumDisplayName(KeyEnum.Alpha4, "4");
+		field.SetEnumDisplayName(KeyEnum.Alpha5, "5");
+		field.SetEnumDisplayName(KeyEnum.Alpha6, "6");
+		field.SetEnumDisplayName(KeyEnum.Alpha7, "7");
+		field.SetEnumDisplayName(KeyEnum.Alpha8, "8");
+		field.SetEnumDisplayName(KeyEnum.Alpha9, "9");
+		field.SetEnumDisplayName(KeyEnum.Mouse1, "Mouse 1");
+		field.SetEnumDisplayName(KeyEnum.Mouse2, "Mouse 2");
+		field.SetEnumDisplayName(KeyEnum.Mouse3, "Mouse 3");
+		field.SetEnumDisplayName(KeyEnum.Mouse4, "Mouse 4");
+		field.SetEnumDisplayName(KeyEnum.Mouse5, "Mouse 5");
+		field.SetEnumDisplayName(KeyEnum.Mouse6, "Mouse 6");
+		field.SetEnumDisplayName(KeyEnum.Mouse7, "Mouse 7");
+	}
     public static string DefaultParentFolder = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}";
     public static void WeaponVariantBindsConfig()
     {
@@ -138,6 +255,10 @@ public class PluginConfig
         revolver3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.ignoreWeaponInCycle[0,2] = e.value;};
         Plugin.ignoreWeaponInCycle[0,2] = revolver3CycleIgnoreField.value;
 
+        SetDisplayNames(revolverVariant1Field);
+        SetDisplayNames(revolverVariant2Field);
+        SetDisplayNames(revolverVariant3Field);
+
         //+---------+\\
         //| SHOTGUN |\\
         //+---------+\\
@@ -171,6 +292,10 @@ public class PluginConfig
         BoolField shotgun3CycleIgnoreField = new BoolField(shotgunPanel, "Autoswitch Variant 3 in Cycle", "ignoreShotgun3InCycle", false);
         shotgun3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.ignoreWeaponInCycle[1,2] = e.value;};
         Plugin.ignoreWeaponInCycle[1,2] = shotgun3CycleIgnoreField.value;
+
+        SetDisplayNames(shotgunVariant1Field);
+        SetDisplayNames(shotgunVariant2Field);
+        SetDisplayNames(shotgunVariant3Field);
 
         //+---------+\\
         //| NAILGUN |\\
@@ -206,6 +331,10 @@ public class PluginConfig
         nailgun3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.ignoreWeaponInCycle[2,2] = e.value;};
         Plugin.ignoreWeaponInCycle[2,2] = nailgun3CycleIgnoreField.value;
 
+        SetDisplayNames(nailgunVariant1Field);
+        SetDisplayNames(nailgunVariant2Field);
+        SetDisplayNames(nailgunVariant3Field);
+
         //+------------+\\
         //| RAILCANNON |\\
         //+------------+\\
@@ -240,6 +369,10 @@ public class PluginConfig
         railcannon3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.ignoreWeaponInCycle[3,2] = e.value;};
         Plugin.ignoreWeaponInCycle[3,2] = railcannon3CycleIgnoreField.value;
 
+        SetDisplayNames(railcannonVariant1Field);
+        SetDisplayNames(railcannonVariant2Field);
+        SetDisplayNames(railcannonVariant3Field);
+
         //+-----------------+\\
         //| ROCKET LAUNCHER |\\
         //+-----------------+\\
@@ -273,5 +406,9 @@ public class PluginConfig
         BoolField rocket_launcher3CycleIgnoreField = new BoolField(rocket_launcherPanel, "Autoswitch Variant 3 in Cycle", "ignoreRocket_launcher3InCycle", false);
         rocket_launcher3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.ignoreWeaponInCycle[4,2] = e.value;};
         Plugin.ignoreWeaponInCycle[4,2] = rocket_launcher3CycleIgnoreField.value;
+
+        SetDisplayNames(rocket_launcherVariant1Field);
+        SetDisplayNames(rocket_launcherVariant2Field);
+        SetDisplayNames(rocket_launcherVariant3Field);
     }
 }

@@ -5,6 +5,7 @@ C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\bin\Debug\netstandard2
 C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\bin\Debug\netstandard2.0\BepInEx.dll
 C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\bin\Debug\netstandard2.0\PluginConfigurator.dll
 C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\bin\Debug\netstandard2.0\UKEnemyIdentifier.dll
+C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\bin\Debug\netstandard2.0\Ultrakill-Assembly-CSharp.dll
 C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\bin\Debug\netstandard2.0\Unity.InputSystem.dll
 C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\bin\Debug\netstandard2.0\UnityEngine.UI.dll
 C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\bin\Debug\netstandard2.0\PluginConfiguratorComponents.dll
@@ -39,4 +40,3 @@ C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\obj\Debug\netstandard2
 C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\obj\Debug\netstandard2.0\WeaponVa.1A61DDD9.Up2Date
 C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\obj\Debug\netstandard2.0\WeaponVariantBinds.dll
 C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\obj\Debug\netstandard2.0\WeaponVariantBinds.pdb
-C:\Users\willb\Documents\UltrakillMods\WeaponVariantBinds\bin\Debug\netstandard2.0\Ultrakill-Assembly-CSharp.dll
