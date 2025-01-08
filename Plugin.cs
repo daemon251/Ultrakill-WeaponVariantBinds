@@ -16,9 +16,8 @@ namespace WeaponVariantBinds;
 //TO DO:
 //organize code
 //some users' autoswitch doesnt work?
-//more keys
 
-//unequipped weapons cause problems
+//unequipped weapons cause problems?
 
 [BepInPlugin("WeaponVariantBinds", "WeaponVariantBinds", "0.01")]
 public class Plugin : BaseUnityPlugin
@@ -48,6 +47,14 @@ public class Plugin : BaseUnityPlugin
         string[] NonGameplay = {"Intro","Bootstrap","Main Menu","Level 2-S","Intermission1","Intermission2"};
         if(SceneHelper.CurrentScene == null) {return false;}
         return !NonGameplay.Contains(SceneHelper.CurrentScene);
+    }
+    public static bool IsMenu()
+    {
+        if(!MonoSingleton<OptionsManager>.Instance.paused && !MonoSingleton<FistControl>.Instance.shopping && !GameStateManager.Instance.PlayerInputLocked)
+        {
+            return false;
+        }
+        return true;
     }
     void setLastUsedWeapon()
     {
@@ -108,7 +115,7 @@ public class Plugin : BaseUnityPlugin
     GameObject weapon = null;
     public void Update() //haha spaghetti spaghetii
     {
-        if(!IsGameplayScene() || !modEnabled) {return;}
+        if(!IsGameplayScene() || !modEnabled || IsMenu()) {return;}
 
         for (int i = 0; i < weaponKeyCodes.GetLength(0); i++) // j < 5
         {
