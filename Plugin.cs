@@ -10,26 +10,30 @@ using System;
 using UnityEngine.SocialPlatforms;
 using System.Linq;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 namespace WeaponVariantBinds;
 
 //TO DO:
 //organize code
-//some users' autoswitch doesnt work?
+//names
+//back weapon fix
+//weapon variants buttons? I guess?
+//colors
+//disable default buttons when enabled option
 
 //unequipped weapons cause problems?
 
 [BepInPlugin("WeaponVariantBinds", "WeaponVariantBinds", "0.01")]
 public class Plugin : BaseUnityPlugin
 {
-    public static bool tempDisableAutoSwitch = false;
     public static bool modEnabled = true;
-    public static bool SwapVariationIgnoreMod = false;
-    public static bool ScrollVariationIgnoreMod = false;
-    
-    //I am not a C# developer but what is this syntax [,]???
-    public static KeyCode[,] weaponKeyCodes = new KeyCode[5, 3];
-    public static bool[,] ignoreWeaponInCycle = new bool[5, 3];
+    public static bool legacyModDisabled = true;
+    public static GameObject weapon = null;
+
+    public static bool scrollEnabled = false;
+    public static bool scrollVariation = false;
+    public static bool scrollReversed = false;
     
     private void Awake()
     {
@@ -38,9 +42,6 @@ public class Plugin : BaseUnityPlugin
         harmony.PatchAll();
         Logger.LogInfo("Plugin WeaponVariantBinds is loaded!");
     }
-
-    int slot = 0; int lastSlot = 0;
-    int variation = 0; int lastVariation = 0;
 
     public static bool IsGameplayScene() //copied from UltraTweaker
     {
@@ -56,211 +57,163 @@ public class Plugin : BaseUnityPlugin
         }
         return true;
     }
-    void setLastUsedWeapon()
+
+    int lastWeaponSwitchDueToCycleNumber = -1;
+
+    public bool findNextRealWeaponInCycle(WeaponCycle wc) //returns false if there is no next
     {
-        MonoSingleton<GunControl>.Instance.lastUsedSlot = lastSlot;
-        MonoSingleton<GunControl>.Instance.lastUsedVariation = lastVariation;
+        wc.currentIndex += 1;
+        if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+        for(int j = 0; j < wc.weaponEnums.Length; j++)
+        {
+            if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None)
+            {
+                wc.currentIndex += 1;
+                if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+                if(j == wc.weaponEnums.Length - 1) {return false;} //Debug.Log("WeaponVariantBinds - Custom Weapon Cycle Full of Nones"); 
+            }
+        }
+        
+        return true;
+    }
+    public bool findLastRealWeaponInCycle(WeaponCycle wc)
+    {
+        wc.currentIndex += -1;
+        if(wc.currentIndex < 0) {wc.currentIndex = wc.weaponEnums.Length - 1;}
+        for(int j = 0; j < wc.weaponEnums.Length; j++)
+        {
+            if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None)
+            {
+                wc.currentIndex += -1;
+                if(wc.currentIndex < 0) {wc.currentIndex = wc.weaponEnums.Length - 1;}
+                if(j == wc.weaponEnums.Length - 1) {return false;} //Debug.Log("WeaponVariantBinds - Custom Weapon Cycle Full of Nones"); 
+            }
+        }
+        return true;
     }
 
-    bool switchToNextWeaponWithSameKeyCode(KeyCode code, int i, int j)
+    public void switchInWeaponCycle(WeaponCycle wc, int i)
     {
-        int j_startIndex = j;
-        for(int i2 = i; i2 < weaponKeyCodes.GetLength(0); i2++)
+        if(!(lastWeaponSwitchDueToCycleNumber == -1 || lastWeaponSwitchDueToCycleNumber == i)) {wc.currentIndex = 0;}
+
+        int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+        int newSlot = arr[0];
+        int newVariation = arr[1];
+
+        Debug.Log("WeaponVariantBinds - Forcing via customweaponcycle to " + newSlot + " " + newVariation);
+
+        MonoSingleton<GunControl>.Instance.lastUsedSlot = MonoSingleton<GunControl>.Instance.currentSlot;
+        MonoSingleton<GunControl>.Instance.lastUsedVariation = MonoSingleton<GunControl>.Instance.currentVariation;
+
+        if     (newSlot == 0) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot1[newVariation], true);}
+        else if(newSlot == 1) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot2[newVariation], true);}
+        else if(newSlot == 2) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot3[newVariation], true);}
+        else if(newSlot == 3) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot4[newVariation], true);}
+        else if(newSlot == 4) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot5[newVariation], true);}
+
+        MonoSingleton<GunControl>.Instance.lastUsedSlot = MonoSingleton<GunControl>.Instance.currentSlot;
+        MonoSingleton<GunControl>.Instance.lastUsedVariation = MonoSingleton<GunControl>.Instance.currentVariation;
+        weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
+        PluginOld.setLastUsedWeapon();
+        PluginOld.tempDisableAutoSwitch = true;
+
+        /*for(int j = 0; j < PluginConfig.weaponCycles.Length; j++)
         {
-            for(int j2 = j_startIndex; j2 < weaponKeyCodes.GetLength(1); j2++)
+            if(j != i)
             {
-                //PROBABLY DOES NOT SUPPORT MODDED EXTRA WEAPONS
-                if(i == i2 & j == j2) {j2++;}
-                if(j2 > 2) {j2 = 0; i2++;}
-                if(j2 == 0 & i2 == 5) {goto CheckAtStartNow;} //if we reached the last weapon and variant
-                if(weaponKeyCodes[i2, j2] == code)
+                PluginConfig.weaponCycles[j].currentIndex = -1; //set evrything but active to negative one, this gets added to again when we pull it out again, back to zero (what we want)
+            }
+        }*/
+        lastWeaponSwitchDueToCycleNumber = i;
+    }
+
+    public bool checkForCustomWeaponCycleInput()
+    {
+        for (int i = 0; i < PluginConfig.weaponCycles.Length; i++)
+        {
+            WeaponCycle wc = PluginConfig.weaponCycles[i];
+            if(lastWeaponSwitchDueToCycleNumber == i && wc.swapThroughWeaponCycle == true)
+            {
+                if(lastWeaponSwitchDueToCycleNumber >= 0 && MonoSingleton<InputManager>.Instance.InputSource.NextVariation.WasPerformedThisFrame)
                 {
-                    if     (i2 == 0) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot1[j2], true);}
-                    else if(i2 == 1) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot2[j2], true);}
-                    else if(i2 == 2) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot3[j2], true);}
-                    else if(i2 == 3) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot4[j2], true);}
-                    else if(i2 == 4) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot5[j2], true);}
-                    //temp disable auto switch now
-                    tempDisableAutoSwitch = true;
-                    weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
+                    if(findNextRealWeaponInCycle(wc) == false) {return false;}
+                    switchInWeaponCycle(wc, i);
+                    return true;
+                }
+                if(lastWeaponSwitchDueToCycleNumber >= 0 && MonoSingleton<InputManager>.Instance.InputSource.PreviousVariation.WasCanceledThisFrame)
+                {
+                    if(findLastRealWeaponInCycle(wc) == false) {return false;}
+                    switchInWeaponCycle(wc, i);
                     return true;
                 }
             }
-            j_startIndex = 0;
-        }
-        CheckAtStartNow:
-        for(int i2 = 0; i2 < weaponKeyCodes.GetLength(0); i2++)
-        {
-            for(int j2 = 0; j2 < weaponKeyCodes.GetLength(1); j2++)
+            if(lastWeaponSwitchDueToCycleNumber == i && wc.scrollThroughWeaponCycle == true)
             {
-                if(i == i2 & j == j2) {return false;}
-                if(weaponKeyCodes[i2, j2] == code)
-                {
-                    if     (i2 == 0) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot1[j2], true);}
-                    else if(i2 == 1) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot2[j2], true);}
-                    else if(i2 == 2) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot3[j2], true);}
-                    else if(i2 == 3) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot4[j2], true);}
-                    else if(i2 == 4) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot5[j2], true);}
-                    //temp disable auto switch now
-                    tempDisableAutoSwitch = true;
-                    weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
-                    return true;
-                }
-            }
-        }
-        Debug.Log("WeaponVariantBinds - Should have never gotten here.");
-        return false;
-    }
+                if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollEnabled")) {scrollEnabled =   (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollEnabled"];}
+                if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollVariations")) {scrollVariation = (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollVariations"];}
+                if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollReversed")) {scrollReversed =  (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollReversed"];}
 
-    GameObject weapon = null;
-    public void Update() //haha spaghetti spaghetii
-    {
-        if(!IsGameplayScene() || !modEnabled || IsMenu()) {return;}
-
-        for (int i = 0; i < weaponKeyCodes.GetLength(0); i++) // j < 5
-        {
-            for (int j = 0; j < weaponKeyCodes.GetLength(1); j++) // j < 3
-            {
-                if(Input.GetKeyDown(weaponKeyCodes[i, j]))
+                float mult = 1f;
+                if(scrollReversed){mult = -1f;}
+                float value = Input.GetAxis("Mouse ScrollWheel") * mult; 
+                if(scrollEnabled && scrollVariation)
                 {
-                    MonoSingleton<GunControl>.Instance.lastUsedSlot = MonoSingleton<GunControl>.Instance.currentSlot; MonoSingleton<GunControl>.Instance.lastUsedVariation = MonoSingleton<GunControl>.Instance.currentVariation;
-                    //now check for if another weapon shares this bind AND if we are already on one of them. If we are, then switch to the next one on it (first by j, then by i). Else, switch to the weapon we intended.
-                    if(MonoSingleton<GunControl>.Instance.currentSlot == i + 1 && MonoSingleton<GunControl>.Instance.currentVariation == j)
+                    if(value >= 0.1f)
                     {
-                        Debug.Log("WeaponVariantBinds - try to switch to next wep with same keycode");
-                        if(switchToNextWeaponWithSameKeyCode(weaponKeyCodes[i, j], i, j))
-                        {
-                            Debug.Log("WeaponVariantBinds - switched to next wep with same keycode");
-                            goto WeaponSwitched;
-                        } 
+                        if(findNextRealWeaponInCycle(wc) == false) {return false;}
+                        switchInWeaponCycle(wc, i);
+                        return true;
+                    }
+                    if(value <= -0.1f)
+                    {
+                        if(findLastRealWeaponInCycle(wc) == false) {return false;}
+                        switchInWeaponCycle(wc, i);
+                        return true;
                     }
                 }
             }
+            if(Input.GetKeyDown(wc.useCode))
+            {
+                if(lastWeaponSwitchDueToCycleNumber == -1)
+                {
+                    wc.currentIndex += -1; //if this is our first switch, then offset the effect of going to the next weapon (we want to start on weapon index zero not one)
+                }
+                if(findNextRealWeaponInCycle(wc) == false) {return false;} //return because there are no weapons to do operations with.
+                switchInWeaponCycle(wc, i);
+                return true;
+            }
         }
+        return false; //return true only if we did something
+    }
 
-        //Ignore previous behavior normally. inefficent. 
-        for (int i = 0; i < weaponKeyCodes.GetLength(0); i++) // j < 5 
+    public void Update()
+    {
+        if(!IsGameplayScene() || !modEnabled || IsMenu()) {return;}
+
+        PluginOld.slot = MonoSingleton<GunControl>.Instance.currentSlot;  PluginOld.lastSlot = MonoSingleton<GunControl>.Instance.lastUsedSlot;
+        PluginOld.variation = MonoSingleton<GunControl>.Instance.currentVariation;  PluginOld.lastVariation = MonoSingleton<GunControl>.Instance.lastUsedVariation;
+
+        //if we successfully do a custom weapon cycle weapon switch
+        if(checkForCustomWeaponCycleInput() == true) {goto skipOtherBehavior;}
+        if(legacyModDisabled == false)
         {
-            for (int j = 0; j < weaponKeyCodes.GetLength(1); j++) // j < 3
-            {
-                if(Input.GetKeyDown(weaponKeyCodes[i, j]))
-                {
-                    //is this REALLY the best way to do this?
-                    MonoSingleton<GunControl>.Instance.lastUsedSlot = MonoSingleton<GunControl>.Instance.currentSlot; MonoSingleton<GunControl>.Instance.lastUsedVariation = MonoSingleton<GunControl>.Instance.currentVariation;
-                    if     (i == 0) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot1[j], true);}
-                    else if(i == 1) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot2[j], true);}
-                    else if(i == 2) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot3[j], true);}
-                    else if(i == 3) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot4[j], true);}
-                    else if(i == 4) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot5[j], true);}
-                    //temp disable auto switch now
-                    tempDisableAutoSwitch = true;
-                    weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
-
-                    Debug.Log("WeaponVariantBinds - key pressed");
-
-                    goto WeaponSwitched;
-                }
-            }
-        }
-
-        WeaponSwitched:
-
-        //int onSwapBehavior = MonoSingleton<PrefsManager>.Instance.GetInt("WeaponRedrawBehaviour"); //0 is default, 1 is first weapon, 2 is same weapon
-
-        slot = MonoSingleton<GunControl>.Instance.currentSlot; lastSlot = MonoSingleton<GunControl>.Instance.lastUsedSlot;
-        variation = MonoSingleton<GunControl>.Instance.currentVariation; lastVariation = MonoSingleton<GunControl>.Instance.lastUsedVariation;
-
-        List<GameObject> slotList = null;
-        if     (slot == 1){slotList = MonoSingleton<GunControl>.Instance.slot1;}
-        else if(slot == 2){slotList = MonoSingleton<GunControl>.Instance.slot2;}
-        else if(slot == 3){slotList = MonoSingleton<GunControl>.Instance.slot3;}
-        else if(slot == 4){slotList = MonoSingleton<GunControl>.Instance.slot4;}
-        else if(slot == 5){slotList = MonoSingleton<GunControl>.Instance.slot5;}
-
-        //  MonoSingleton<InputManager>.Instance.InputSource.Actions.Weapon.VariationSlot3 just doesnt exist if you dont use the ultrakill c# dll. I guess something I have is outdated and doesnt include the variation slots.
-        if (MonoSingleton<InputManager>.Instance.InputSource.Actions.Weapon.VariationSlot1.WasPressedThisFrame()   ||  
-            MonoSingleton<InputManager>.Instance.InputSource.Actions.Weapon.VariationSlot2.WasPressedThisFrame()   ||
-            MonoSingleton<InputManager>.Instance.InputSource.Actions.Weapon.VariationSlot3.WasPressedThisFrame()    ) 
-        {tempDisableAutoSwitch = true; weapon = MonoSingleton<GunControl>.Instance.currentWeapon;}
-
-        if(MonoSingleton<InputManager>.Instance.InputSource.LastWeapon.WasCanceledThisFrame) {tempDisableAutoSwitch = true; weapon = MonoSingleton<GunControl>.Instance.currentWeapon;}
-
-        if((MonoSingleton<InputManager>.Instance.InputSource.NextVariation.WasPerformedThisFrame    ||
-            MonoSingleton<InputManager>.Instance.InputSource.PreviousVariation.WasCanceledThisFrame  )  &&
-            SwapVariationIgnoreMod == true)
-        {tempDisableAutoSwitch = true; weapon = MonoSingleton<GunControl>.Instance.currentWeapon;}
-
-        //you have to do it like this, doing it the normal way just doesnt work for some reason... Causes KeyNotFoundException I think for some reason for some people unless we check if the key exists?
-        //If this fixes the issue of the mod not working, this will still be concerning and probably means for that same group of people that scrolling will not work properly.
-        bool scrollEnabled = false;
-        bool scrollVariation = false;
-        bool scrollReversed = false;
-
-        //Debug.Log("WeaponVariantBinds - attempting to load extra prefs");
-        if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollEnabled")) {scrollEnabled =   (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollEnabled"];}
-        if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollVariations")) {scrollVariation = (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollVariations"];}
-        if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollReversed")) {scrollReversed =  (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollReversed"];}
-
-        if(Math.Abs(Input.GetAxis("Mouse ScrollWheel")) >= 0.1 &&
-           scrollEnabled            == true &&
-           scrollVariation          == true &&
-           ScrollVariationIgnoreMod == true  )
-        {tempDisableAutoSwitch = true; weapon = MonoSingleton<GunControl>.Instance.currentWeapon;}
-
-        //first two conditions should prevent OutOfBounds exceptions in case of modded weapons
-        if(slot <= 5 && MonoSingleton<GunControl>.Instance.currentVariation <= 2 && tempDisableAutoSwitch == false && slotList != null && ignoreWeaponInCycle[slot - 1, MonoSingleton<GunControl>.Instance.currentVariation] == true) //this is a mess, fix later
-        { 
-            //first we have to check if ALL variants are ignored. (unless if there are more than 3)
-
-            int ignoreCount = 0;
-            for (int i = 0; i < slotList.Count; i++)
-            {
-                if(slotList.Count > 3) { } //to avoid array out of bounds exception in case modders add extra variants
-                else if(ignoreWeaponInCycle[slot - 1, i] == true) {ignoreCount++;}
-            }
-            bool tooManyIgnores = false;
-            if(ignoreCount == slotList.Count) {tooManyIgnores = true; Debug.Log("WeaponVariantBinds - Too many igonres");}
-
-            if(tooManyIgnores == false)
-            {
-                bool weaponChanged = false;
-                bool reversedDirection = false;
-
-                if(scrollEnabled && scrollVariation)
-                {
-                    float value = Input.GetAxis("Mouse ScrollWheel");
-                    if(scrollReversed) {reversedDirection = Math.Abs(value) >= 0.1f && value > 0; }
-                    else{reversedDirection = Math.Abs(value) >= 0.1f && value < 0;}
-                }
-                if(MonoSingleton<InputManager>.Instance.InputSource.PreviousVariation.WasCanceledThisFrame == true) {reversedDirection = true;}
-
-                Debug.Log("WeaponVariantBinds - current: " + MonoSingleton<GunControl>.Instance.currentSlot + " " + MonoSingleton<GunControl>.Instance.currentVariation);
-                Debug.Log("WeaponVariantBinds - weapon about to be forced");
-                if(reversedDirection == false)
-                {
-                    if(slotList.Count > 1 && MonoSingleton<GunControl>.Instance.currentVariation == 0 && ignoreWeaponInCycle[slot - 1, MonoSingleton<GunControl>.Instance.currentVariation] == true) {MonoSingleton<GunControl>.Instance.ForceWeapon(slotList[1], true); weaponChanged = true;}
-                    if(slotList.Count > 2 && MonoSingleton<GunControl>.Instance.currentVariation == 1 && ignoreWeaponInCycle[slot - 1, MonoSingleton<GunControl>.Instance.currentVariation] == true) {MonoSingleton<GunControl>.Instance.ForceWeapon(slotList[2], true); weaponChanged = true;}
-                    if(slotList.Count > 3 && MonoSingleton<GunControl>.Instance.currentVariation == 2 && ignoreWeaponInCycle[slot - 1, MonoSingleton<GunControl>.Instance.currentVariation] == true) {MonoSingleton<GunControl>.Instance.ForceWeapon(slotList[3], true); weaponChanged = true;}
-                    else if(                 MonoSingleton<GunControl>.Instance.currentVariation == 2 && ignoreWeaponInCycle[slot - 1, MonoSingleton<GunControl>.Instance.currentVariation] == true) {MonoSingleton<GunControl>.Instance.ForceWeapon(slotList[0], true); weaponChanged = true;}
-                    if(weaponChanged) {setLastUsedWeapon();}
-                }
-                else
-                {
-                    if(MonoSingleton<GunControl>.Instance.currentVariation == 2 && ignoreWeaponInCycle[slot - 1, MonoSingleton<GunControl>.Instance.currentVariation] == true) {MonoSingleton<GunControl>.Instance.ForceWeapon(slotList[1], true); weaponChanged = true;}
-                    if(MonoSingleton<GunControl>.Instance.currentVariation == 1 && ignoreWeaponInCycle[slot - 1, MonoSingleton<GunControl>.Instance.currentVariation] == true) {MonoSingleton<GunControl>.Instance.ForceWeapon(slotList[0], true); weaponChanged = true;}
-                    if(MonoSingleton<GunControl>.Instance.currentVariation == 0 && ignoreWeaponInCycle[slot - 1, MonoSingleton<GunControl>.Instance.currentVariation] == true) {MonoSingleton<GunControl>.Instance.ForceWeapon(slotList[slotList.Count - 1], true); weaponChanged = true;}
-                    if(weaponChanged) {setLastUsedWeapon();}
-                }
-                Debug.Log("WeaponVariantBinds - after: " + MonoSingleton<GunControl>.Instance.currentSlot + " " + MonoSingleton<GunControl>.Instance.currentVariation);
-            }
+            PluginOld.LegacyCode();
         }
 
         //enable auto switch if we find a change in weapon (done by the player)
+        //done after autoswitch attempted, disabled early in the tick if something happens.
         if(weapon != MonoSingleton<GunControl>.Instance.currentWeapon) 
         {
-            tempDisableAutoSwitch = false; //lets allow force switching a weapon
+            PluginOld.tempDisableAutoSwitch = false; //lets allow force switching a weapon
+            lastWeaponSwitchDueToCycleNumber = -1; //-1 for no cycle involved
+            for(int i = 0; i < PluginConfig.weaponCycles.Length; i++) //set to zero because we are no longer in the cycle
+            {
+                PluginConfig.weaponCycles[i].currentIndex = 0;
+            }
             Debug.Log("WeaponVariantBinds - old weapon: " + weapon + " new: " + MonoSingleton<GunControl>.Instance.currentWeapon);
         }
+        skipOtherBehavior:
+
         weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
     }
 }
