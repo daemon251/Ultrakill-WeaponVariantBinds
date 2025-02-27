@@ -13,6 +13,8 @@ using UnityEngine.UIElements;
 
 namespace WeaponVariantBinds;
 
+public enum SwapBehaviorEnum{NextVariation, SameVariation, FirstVariation}
+
 public class WeaponCycle
 {   
     //enabled field used to be here but pointless because you can just set the use code to none
@@ -21,12 +23,16 @@ public class WeaponCycle
     public KeyCode useCode = KeyCode.None;
     public bool scrollThroughWeaponCycle = true;
     public bool swapThroughWeaponCycle = true;
+    public bool specificVariationThroughWeaponCycle = true;
+    public bool rememberVariation = false;
+    public SwapBehaviorEnum swapBehavior = SwapBehaviorEnum.NextVariation;
     public WeaponCycle() {}
 }
 
 public class PluginConfig
 {
-    public enum WeaponEnum {None, Piercer_Revolver, Marksman_Revolver, Sharpshooter_Revolver, 
+    public enum WeaponEnum {None,
+    Piercer_Revolver, Marksman_Revolver, Sharpshooter_Revolver, 
     Core_Eject_Shotgun, Pump_Charge_Shotgun, Sawed_On_Shotgun, 
     Attractor_Nailgun, Overheat_Nailgun, Jumpstart_Nailgun,
     Electric_Railcannon, Screwdriver, Malicious_Railcannon, 
@@ -52,6 +58,7 @@ public class PluginConfig
 
     public static int[] convertWeaponEnumToSlotVariation(WeaponEnum code)
     {
+        //arr[0] is slot, arr[1] is weapon variation
         int[] arr = {50,50}; //causes errors if this value isnt ever overwritten
         arr[0] = (int)(code - 1) / 3;
         for(int i = 0; i < 3; i++)
@@ -310,9 +317,9 @@ public class PluginConfig
         //| CUSTOM WEAPON CYCLES |\\
         //+----------------------+\\
 
-        ConfigHeader cuystomWeaponCycleHeader = new ConfigHeader(division, "Custom Weapon Cycles have issues with some input setups, fixed in the next update.");
-        cuystomWeaponCycleHeader.textSize = 14;
-        ConfigPanel customWeaponCyclePanel = new ConfigPanel(division, "Custom Weapon Cycles", "customWeaponCyclePanel");
+        //ConfigPanel customWeaponCyclePanel = new ConfigPanel(division, "Custom Weapon Cycles", "customWeaponCyclePanel");
+        ConfigHeader customWeaponCycleHeader = new ConfigHeader(division, "Weapon cycles probably work how you expect, but consult the readme if you need help. Mixing vanilla weapon switch binds and these weapon cycles may not work perfectly.");
+        customWeaponCycleHeader.textSize = 14;
 
         for(int i = 1; i <= weaponCycles.Length; i++)
         {
@@ -323,7 +330,8 @@ public class PluginConfig
                 weaponCycle.weaponEnums[j] = WeaponEnum.None;
             }
 
-            ConfigPanel newWeaponCyclePanel = new ConfigPanel(customWeaponCyclePanel, "Weapon Cycle " + i, "customWeaponCyclePanel" + i);
+            ConfigPanel newWeaponCyclePanel = new ConfigPanel(division, "Weapon Cycle " + i, "customWeaponCyclePanel" + i);
+            if(i % 2 == 1) {newWeaponCyclePanel.fieldColor = new Color(0.06f, 0.06f, 0.06f);}
 
             EnumField<KeyEnum> useKeyField = new EnumField<KeyEnum>(newWeaponCyclePanel, "Weapon Cycle Key", "customWeaponCycleKey" + i, KeyEnum.None);
             useKeyField.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {weaponCycle.useCode = convertKeyEnumToKeyCode(e.value);};
@@ -338,7 +346,22 @@ public class PluginConfig
             swapThroughWeaponCycleField.onValueChange += (BoolField.BoolValueChangeEvent e) => {weaponCycle.swapThroughWeaponCycle = e.value;};
             weaponCycle.swapThroughWeaponCycle = swapThroughWeaponCycleField.value;
 
-            ConfigHeader cuystomWeaponCycleWeaponsHeader = new ConfigHeader(newWeaponCyclePanel, "Weapons");
+            BoolField specificVariationThroughWeaponCycleField = new BoolField(newWeaponCyclePanel, "Specific Variant Bind In Cycle", "specificVariationThroughWeaponCycle" + i, true);
+            specificVariationThroughWeaponCycleField.onValueChange += (BoolField.BoolValueChangeEvent e) => {weaponCycle.specificVariationThroughWeaponCycle = e.value;};
+            weaponCycle.specificVariationThroughWeaponCycle = specificVariationThroughWeaponCycleField.value;
+
+            BoolField rememberCycleVariationField = new BoolField(newWeaponCyclePanel, "Remember Cycle Variation", "rememberCycleVariation" + i, false);
+            rememberCycleVariationField.onValueChange += (BoolField.BoolValueChangeEvent e) => {weaponCycle.rememberVariation = e.value;};
+            weaponCycle.rememberVariation = rememberCycleVariationField.value;
+
+            EnumField<SwapBehaviorEnum> swapBehaviorField = new EnumField<SwapBehaviorEnum>(newWeaponCyclePanel, "On Swap to Already Drawn Weapon", "swapBehavior" + i, SwapBehaviorEnum.NextVariation);
+            swapBehaviorField.onValueChange += (EnumField<SwapBehaviorEnum>.EnumValueChangeEvent e) => {weaponCycle.swapBehavior = e.value;};
+            weaponCycle.swapBehavior = swapBehaviorField.value;
+            swapBehaviorField.SetEnumDisplayName(SwapBehaviorEnum.FirstVariation, "First Variation");
+            swapBehaviorField.SetEnumDisplayName(SwapBehaviorEnum.NextVariation, "Next Variation");
+            swapBehaviorField.SetEnumDisplayName(SwapBehaviorEnum.SameVariation, "Same Variation");
+
+            ConfigHeader customWeaponCycleWeaponsHeader = new ConfigHeader(newWeaponCyclePanel, "Weapons");
 
             EnumField<WeaponEnum> weaponField1 = new EnumField<WeaponEnum>(newWeaponCyclePanel, "Weapon " + 1, "customWeaponCycle" + i + "weapon" + 1, WeaponEnum.None);
             weaponField1.onValueChange += (EnumField<WeaponEnum>.EnumValueChangeEvent e) => {weaponCycle.weaponEnums[0] = e.value;};
@@ -395,220 +418,5 @@ public class PluginConfig
             weaponCycle.weaponEnums[9] =  weaponField10.value;
             setWeaponEnumDisplayNames(weaponField10);
         }
-        
-        ///////\\\\\\\///////\\\\\\\
-        //+--------+\\//+--------+\\
-        //| LEGACY |\\//| LEGACY |\\
-        //+--------+\\//+--------+\\
-        ///////\\\\\\\///////\\\\\\\
-
-        ConfigDivision division2 = new ConfigDivision(config.rootPanel, "division2");
-
-        BoolField legacyModEnabledField = new BoolField(division, "Disable old mod functionality (below)", "legacyModEnabled", true);
-        legacyModEnabledField.onValueChange += (BoolField.BoolValueChangeEvent e) => {Plugin.legacyModDisabled = e.value; division2.interactable = !e.value;};
-        Plugin.legacyModDisabled = legacyModEnabledField.value;
-
-        division2.interactable = !legacyModEnabledField.value; 
-
-        ConfigHeader normalWeaponHeader = new ConfigHeader(division, "The following settings work independently from the custom weapon cycles. I reccommend using the Custom Weapon Cycles over these, these will probably be removed soon.");
-        normalWeaponHeader.textSize = 14;
-        
-        BoolField SwapVariationIgnoreModField = new BoolField(division2, "Swap variation ignores autoswitch?", "swapVariationIgnoreMod", true);
-        SwapVariationIgnoreModField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.SwapVariationIgnoreMod = e.value;};
-        PluginOld.SwapVariationIgnoreMod = SwapVariationIgnoreModField.value; 
-
-        BoolField ScrollVariationIgnoreModField = new BoolField(division2, "Scroll variation ignores autoswitch?", "scrollVariationIgnoreMod", true);
-        ScrollVariationIgnoreModField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ScrollVariationIgnoreMod = e.value;};
-        PluginOld.ScrollVariationIgnoreMod = ScrollVariationIgnoreModField.value; 
-
-        //+----------+\\
-        //| REVOLVER |\\
-        //+----------+\\
-
-        ConfigPanel revolverPanel = new ConfigPanel(division2, "Revolver", "revolverPanel");
-
-        ConfigHeader revolverHeader = new ConfigHeader(revolverPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
-        revolverHeader.textSize = 16;
-        revolverHeader.textColor = Color.white;
-
-        EnumField<KeyEnum> revolverVariant1Field = new EnumField<KeyEnum>(revolverPanel, "Revolver Variant 1 Bind", "revolverVariant1Bind", KeyEnum.None);
-        revolverVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[0,0] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[0,0] = convertKeyEnumToKeyCode(revolverVariant1Field.value);
-
-        EnumField<KeyEnum> revolverVariant2Field = new EnumField<KeyEnum>(revolverPanel, "Revolver Variant 2 Bind", "revolverVariant2Bind", KeyEnum.None);
-        revolverVariant2Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[0,1] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[0,1] = convertKeyEnumToKeyCode(revolverVariant2Field.value);
-
-        EnumField<KeyEnum> revolverVariant3Field = new EnumField<KeyEnum>(revolverPanel, "Revolver Variant 3 Bind", "revolverVariant3Bind", KeyEnum.None);
-        revolverVariant3Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[0,2] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[0,2] = convertKeyEnumToKeyCode(revolverVariant3Field.value);
-
-        BoolField revolver1CycleIgnoreField = new BoolField(revolverPanel, "Autoswitch Variant 1 in Cycle", "ignoreRevolver1InCycle", false);
-        revolver1CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[0,0] = e.value;};
-        PluginOld.ignoreWeaponInCycle[0,0] = revolver1CycleIgnoreField.value;
-
-        BoolField revolver2CycleIgnoreField = new BoolField(revolverPanel, "Autoswitch Variant 2 in Cycle", "ignoreRevolver2InCycle", false);
-        revolver2CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[0,1] = e.value;};
-        PluginOld.ignoreWeaponInCycle[0,1] = revolver2CycleIgnoreField.value;
-
-        BoolField revolver3CycleIgnoreField = new BoolField(revolverPanel, "Autoswitch Variant 3 in Cycle", "ignoreRevolver3InCycle", false);
-        revolver3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[0,2] = e.value;};
-        PluginOld.ignoreWeaponInCycle[0,2] = revolver3CycleIgnoreField.value;
-
-        SetDisplayNames(revolverVariant1Field);
-        SetDisplayNames(revolverVariant2Field);
-        SetDisplayNames(revolverVariant3Field);
-
-        //+---------+\\
-        //| SHOTGUN |\\
-        //+---------+\\
-
-        ConfigPanel shotgunPanel = new ConfigPanel(division2, "Shotgun", "shotgunPanel");
-
-        ConfigHeader shotgunHeader = new ConfigHeader(shotgunPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
-        shotgunHeader.textSize = 16;
-        shotgunHeader.textColor = Color.white;
-
-        EnumField<KeyEnum> shotgunVariant1Field = new EnumField<KeyEnum>(shotgunPanel, "Shotgun Variant 1 Bind", "shotgunVariant1Bind", KeyEnum.None);
-        shotgunVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[1,0] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[1,0] = convertKeyEnumToKeyCode(shotgunVariant1Field.value);
-
-        EnumField<KeyEnum> shotgunVariant2Field = new EnumField<KeyEnum>(shotgunPanel, "Shotgun Variant 2 Bind", "shotgunVariant2Bind", KeyEnum.None);
-        shotgunVariant2Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[1,1] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[1,1] = convertKeyEnumToKeyCode(shotgunVariant2Field.value);
-
-        EnumField<KeyEnum> shotgunVariant3Field = new EnumField<KeyEnum>(shotgunPanel, "Shotgun Variant 3 Bind", "shotgunVariant3Bind", KeyEnum.None);
-        shotgunVariant3Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[1,2] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[1,2] = convertKeyEnumToKeyCode(shotgunVariant3Field.value);
-
-        BoolField shotgun1CycleIgnoreField = new BoolField(shotgunPanel, "Autoswitch Variant 1 in Cycle", "ignoreShotgun1InCycle", false);
-        shotgun1CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[1,0] = e.value;};
-        PluginOld.ignoreWeaponInCycle[1,0] = shotgun1CycleIgnoreField.value;
-
-        BoolField shotgun2CycleIgnoreField = new BoolField(shotgunPanel, "Autoswitch Variant 2 in Cycle", "ignoreShotgun2InCycle", false);
-        shotgun2CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[1,1] = e.value;};
-        PluginOld.ignoreWeaponInCycle[1,1] = shotgun2CycleIgnoreField.value;
-
-        BoolField shotgun3CycleIgnoreField = new BoolField(shotgunPanel, "Autoswitch Variant 3 in Cycle", "ignoreShotgun3InCycle", false);
-        shotgun3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[1,2] = e.value;};
-        PluginOld.ignoreWeaponInCycle[1,2] = shotgun3CycleIgnoreField.value;
-
-        SetDisplayNames(shotgunVariant1Field);
-        SetDisplayNames(shotgunVariant2Field);
-        SetDisplayNames(shotgunVariant3Field);
-
-        //+---------+\\
-        //| NAILGUN |\\
-        //+---------+\\
-
-        ConfigPanel nailgunPanel = new ConfigPanel(division2, "Nailgun", "nailgunPanel");
-
-        ConfigHeader nailgunHeader = new ConfigHeader(nailgunPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
-        nailgunHeader.textSize = 16;
-        nailgunHeader.textColor = Color.white;
-
-        EnumField<KeyEnum> nailgunVariant1Field = new EnumField<KeyEnum>(nailgunPanel, "Nailgun Variant 1 Bind", "nailgunVariant1Bind", KeyEnum.None);
-        nailgunVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[2,0] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[2,0] = convertKeyEnumToKeyCode(nailgunVariant1Field.value);
-
-        EnumField<KeyEnum> nailgunVariant2Field = new EnumField<KeyEnum>(nailgunPanel, "Nailgun Variant 2 Bind", "nailgunVariant2Bind", KeyEnum.None);
-        nailgunVariant2Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[2,1] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[2,1] = convertKeyEnumToKeyCode(nailgunVariant2Field.value);
-
-        EnumField<KeyEnum> nailgunVariant3Field = new EnumField<KeyEnum>(nailgunPanel, "Nailgun Variant 3 Bind", "nailgunVariant3Bind", KeyEnum.None);
-        nailgunVariant3Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[2,2] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[2,2] = convertKeyEnumToKeyCode(nailgunVariant3Field.value);
-
-        BoolField nailgun1CycleIgnoreField = new BoolField(nailgunPanel, "Autoswitch Variant 1 in Cycle", "ignoreNailgun1InCycle", false);
-        nailgun1CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[2,0] = e.value;};
-        PluginOld.ignoreWeaponInCycle[2,0] = nailgun1CycleIgnoreField.value;
-
-        BoolField nailgun2CycleIgnoreField = new BoolField(nailgunPanel, "Autoswitch Variant 2 in Cycle", "ignoreNailgun2InCycle", false);
-        nailgun2CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[2,1] = e.value;};
-        PluginOld.ignoreWeaponInCycle[2,1] = nailgun2CycleIgnoreField.value;
-
-        BoolField nailgun3CycleIgnoreField = new BoolField(nailgunPanel, "Autoswitch Variant 3 in Cycle", "ignoreNailgun3InCycle", false);
-        nailgun3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[2,2] = e.value;};
-        PluginOld.ignoreWeaponInCycle[2,2] = nailgun3CycleIgnoreField.value;
-
-        SetDisplayNames(nailgunVariant1Field);
-        SetDisplayNames(nailgunVariant2Field);
-        SetDisplayNames(nailgunVariant3Field);
-
-        //+------------+\\
-        //| RAILCANNON |\\
-        //+------------+\\
-
-        ConfigPanel railcannonPanel = new ConfigPanel(division2, "Railcannon", "railcannonPanel");
-
-        ConfigHeader railcannonHeader = new ConfigHeader(railcannonPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
-        railcannonHeader.textSize = 16;
-        railcannonHeader.textColor = Color.white;
-
-        EnumField<KeyEnum> railcannonVariant1Field = new EnumField<KeyEnum>(railcannonPanel, "Railcannon Variant 1 Bind", "railcannonVariant1Bind", KeyEnum.None);
-        railcannonVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[3,0] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[3,0] = convertKeyEnumToKeyCode(railcannonVariant1Field.value);
-
-        EnumField<KeyEnum> railcannonVariant2Field = new EnumField<KeyEnum>(railcannonPanel, "Railcannon Variant 2 Bind", "railcannonVariant2Bind", KeyEnum.None);
-        railcannonVariant2Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[3,1] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[3,1] = convertKeyEnumToKeyCode(railcannonVariant2Field.value);
-
-        EnumField<KeyEnum> railcannonVariant3Field = new EnumField<KeyEnum>(railcannonPanel, "Railcannon Variant 3 Bind", "railcannonVariant3Bind", KeyEnum.None);
-        railcannonVariant3Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[3,2] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[3,2] = convertKeyEnumToKeyCode(railcannonVariant3Field.value);
-
-        BoolField railcannon1CycleIgnoreField = new BoolField(railcannonPanel, "Autoswitch Variant 1 in Cycle", "ignoreRailcannon1InCycle", false);
-        railcannon1CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[3,0] = e.value;};
-        PluginOld.ignoreWeaponInCycle[3,0] = railcannon1CycleIgnoreField.value;
-
-        BoolField railcannon2CycleIgnoreField = new BoolField(railcannonPanel, "Autoswitch Variant 2 in Cycle", "ignoreRailcannon2InCycle", false);
-        railcannon2CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[3,1] = e.value;};
-        PluginOld.ignoreWeaponInCycle[3,1] = railcannon2CycleIgnoreField.value;
-
-        BoolField railcannon3CycleIgnoreField = new BoolField(railcannonPanel, "Autoswitch Variant 3 in Cycle", "ignoreRailcannon3InCycle", false);
-        railcannon3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[3,2] = e.value;};
-        PluginOld.ignoreWeaponInCycle[3,2] = railcannon3CycleIgnoreField.value;
-
-        SetDisplayNames(railcannonVariant1Field);
-        SetDisplayNames(railcannonVariant2Field);
-        SetDisplayNames(railcannonVariant3Field);
-
-        //+-----------------+\\
-        //| ROCKET LAUNCHER |\\
-        //+-----------------+\\
-
-        ConfigPanel rocket_launcherPanel = new ConfigPanel(division2, "Rocket Launcher", "rocket_launcherPanel");
-
-        ConfigHeader rocket_launcherHeader = new ConfigHeader(rocket_launcherPanel, "These settings are based off of the weapon order that you have set in the weapon terminal for this weapon.");
-        rocket_launcherHeader.textSize = 16;
-        rocket_launcherHeader.textColor = Color.white;
-
-        EnumField<KeyEnum> rocket_launcherVariant1Field = new EnumField<KeyEnum>(rocket_launcherPanel, "Rocket Launcher Variant 1 Bind", "rocket_launcherVariant1Bind", KeyEnum.None);
-        rocket_launcherVariant1Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[4,0] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[4,0] = convertKeyEnumToKeyCode(rocket_launcherVariant1Field.value);
-
-        EnumField<KeyEnum> rocket_launcherVariant2Field = new EnumField<KeyEnum>(rocket_launcherPanel, "Rocket Launcher Variant 2 Bind", "rocket_launcherVariant2Bind", KeyEnum.None);
-        rocket_launcherVariant2Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[4,1] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[4,1] = convertKeyEnumToKeyCode(rocket_launcherVariant2Field.value);
-
-        EnumField<KeyEnum> rocket_launcherVariant3Field = new EnumField<KeyEnum>(rocket_launcherPanel, "Rocket Launcher Variant 3 Bind", "rocket_launcherVariant3Bind", KeyEnum.None);
-        rocket_launcherVariant3Field.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {PluginOld.weaponKeyCodes[4,2] = convertKeyEnumToKeyCode(e.value);};
-        PluginOld.weaponKeyCodes[4,2] = convertKeyEnumToKeyCode(rocket_launcherVariant3Field.value);
-
-        BoolField rocket_launcher1CycleIgnoreField = new BoolField(rocket_launcherPanel, "Autoswitch Variant 1 in Cycle", "ignoreRocket_launcher1InCycle", false);
-        rocket_launcher1CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[4,0] = e.value;};
-        PluginOld.ignoreWeaponInCycle[4,0] = rocket_launcher1CycleIgnoreField.value;
-
-        BoolField rocket_launcher2CycleIgnoreField = new BoolField(rocket_launcherPanel, "Autoswitch Variant 2 in Cycle", "ignoreRocket_launcher2InCycle", false);
-        rocket_launcher2CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[4,1] = e.value;};
-        PluginOld.ignoreWeaponInCycle[4,1] = rocket_launcher2CycleIgnoreField.value;
-
-        BoolField rocket_launcher3CycleIgnoreField = new BoolField(rocket_launcherPanel, "Autoswitch Variant 3 in Cycle", "ignoreRocket_launcher3InCycle", false);
-        rocket_launcher3CycleIgnoreField.onValueChange += (BoolField.BoolValueChangeEvent e) => {PluginOld.ignoreWeaponInCycle[4,2] = e.value;};
-        PluginOld.ignoreWeaponInCycle[4,2] = rocket_launcher3CycleIgnoreField.value;
-
-        SetDisplayNames(rocket_launcherVariant1Field);
-        SetDisplayNames(rocket_launcherVariant2Field);
-        SetDisplayNames(rocket_launcherVariant3Field);
     }
 }

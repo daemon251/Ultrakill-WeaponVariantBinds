@@ -16,25 +16,20 @@ namespace WeaponVariantBinds;
 
 //TO DO:
 //organize code
-//names
-//back weapon fix
-//weapon variants buttons? I guess?
-//colors
-//disable default buttons when enabled option
-
+//
 //unequipped weapons cause problems?
 
 [BepInPlugin("WeaponVariantBinds", "WeaponVariantBinds", "0.01")]
 public class Plugin : BaseUnityPlugin
 {
     public static bool modEnabled = true;
-    public static bool legacyModDisabled = true;
     public static GameObject weapon = null;
 
     public static bool scrollEnabled = false;
     public static bool scrollVariation = false;
     public static bool scrollReversed = false;
-    
+    public static bool scrollWeapons = false;
+
     private void Awake()
     {
         PluginConfig.WeaponVariantBindsConfig();
@@ -58,162 +53,347 @@ public class Plugin : BaseUnityPlugin
         return true;
     }
 
-    int lastWeaponSwitchDueToCycleNumber = -1;
+    WeaponCycle[] wcArray = new WeaponCycle[2]; //0 is last wc, 1 is new wc
 
-    public bool findNextRealWeaponInCycle(WeaponCycle wc) //returns false if there is no next
+    int newSlot = -1;
+    int newVariation = -1;
+
+    public void SwitchToNextCustomSlot()
     {
-        wc.currentIndex += 1;
-        if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
-        for(int j = 0; j < wc.weaponEnums.Length; j++)
+        WeaponCycle wcTemp = wcArray[1];
+        int index1 = 0;
+        for(int i = 0; i < PluginConfig.weaponCycles.Length; i++)
         {
-            if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None)
+            if(wcTemp == PluginConfig.weaponCycles[i])
             {
-                wc.currentIndex += 1;
-                if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
-                if(j == wc.weaponEnums.Length - 1) {return false;} //Debug.Log("WeaponVariantBinds - Custom Weapon Cycle Full of Nones"); 
+                index1 = i + 1;
+                if(index1 >= PluginConfig.weaponCycles.Length)
+                {
+                    index1 = 0;
+                }
             }
         }
-        
-        return true;
-    }
-    public bool findLastRealWeaponInCycle(WeaponCycle wc)
-    {
-        wc.currentIndex += -1;
-        if(wc.currentIndex < 0) {wc.currentIndex = wc.weaponEnums.Length - 1;}
-        for(int j = 0; j < wc.weaponEnums.Length; j++)
+        for(int i = 0; i < PluginConfig.weaponCycles.Length; i++)
         {
-            if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None)
+            bool emptyArray = true;
+            for(int j = 0; j < PluginConfig.weaponCycles[index1].weaponEnums.Length; j++)
             {
-                wc.currentIndex += -1;
-                if(wc.currentIndex < 0) {wc.currentIndex = wc.weaponEnums.Length - 1;}
-                if(j == wc.weaponEnums.Length - 1) {return false;} //Debug.Log("WeaponVariantBinds - Custom Weapon Cycle Full of Nones"); 
+                if(PluginConfig.weaponCycles[index1].weaponEnums[j] != PluginConfig.WeaponEnum.None)
+                {
+                    emptyArray = false;
+                }
             }
+            if(emptyArray)
+            {
+                index1++;
+                if(index1 >= PluginConfig.weaponCycles.Length)
+                {
+                    index1 = 0;
+                }
+            }
+            else {break;}
         }
-        return true;
-    }
 
-    public void switchInWeaponCycle(WeaponCycle wc, int i)
-    {
-        if(!(lastWeaponSwitchDueToCycleNumber == -1 || lastWeaponSwitchDueToCycleNumber == i)) {wc.currentIndex = 0;}
+        wcArray[0] = wcArray[1];
+        wcArray[1] = PluginConfig.weaponCycles[index1];
 
+        WeaponCycle wc = wcArray[1];
+        if(wc.rememberVariation == false) {wc.currentIndex = 0;}
+        for (int j = 0; j < wc.weaponEnums.Length; j++)
+        {
+            if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+            if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+        }
         int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
-        int newSlot = arr[0];
-        int newVariation = arr[1];
-
-        Debug.Log("WeaponVariantBinds - Forcing via customweaponcycle to " + newSlot + " " + newVariation);
-
-        MonoSingleton<GunControl>.Instance.lastUsedSlot = MonoSingleton<GunControl>.Instance.currentSlot;
-        MonoSingleton<GunControl>.Instance.lastUsedVariation = MonoSingleton<GunControl>.Instance.currentVariation;
-
-        if     (newSlot == 0) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot1[newVariation], true);}
-        else if(newSlot == 1) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot2[newVariation], true);}
-        else if(newSlot == 2) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot3[newVariation], true);}
-        else if(newSlot == 3) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot4[newVariation], true);}
-        else if(newSlot == 4) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot5[newVariation], true);}
-
-        MonoSingleton<GunControl>.Instance.lastUsedSlot = MonoSingleton<GunControl>.Instance.currentSlot;
-        MonoSingleton<GunControl>.Instance.lastUsedVariation = MonoSingleton<GunControl>.Instance.currentVariation;
-        weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
-        PluginOld.setLastUsedWeapon();
-        PluginOld.tempDisableAutoSwitch = true;
-
-        /*for(int j = 0; j < PluginConfig.weaponCycles.Length; j++)
-        {
-            if(j != i)
-            {
-                PluginConfig.weaponCycles[j].currentIndex = -1; //set evrything but active to negative one, this gets added to again when we pull it out again, back to zero (what we want)
-            }
-        }*/
-        lastWeaponSwitchDueToCycleNumber = i;
+        newSlot = arr[0]; newVariation = arr[1];
     }
 
-    public bool checkForCustomWeaponCycleInput()
+    public void SwitchToPrevCustomSlot()
+    {
+        WeaponCycle wcTemp = wcArray[1];
+        int index1 = 0;
+        for(int i = 0; i < PluginConfig.weaponCycles.Length; i++)
+        {
+            if(wcTemp == PluginConfig.weaponCycles[i])
+            {
+                index1 = i - 1;
+                if(index1 < 0)
+                {
+                    index1 = PluginConfig.weaponCycles.Length - 1;
+                }
+            }
+        }
+        for(int i = 0; i < PluginConfig.weaponCycles.Length; i++)
+        {
+            bool emptyArray = true;
+            for(int j = 0; j < PluginConfig.weaponCycles[index1].weaponEnums.Length; j++)
+            {
+                if(PluginConfig.weaponCycles[index1].weaponEnums[j] != PluginConfig.WeaponEnum.None)
+                {
+                    emptyArray = false;
+                }
+            }
+            if(emptyArray)
+            {
+                index1 += -1;
+                if(index1 < 0)
+                {
+                    index1 = PluginConfig.weaponCycles.Length - 1;
+                }
+            }
+            else {break;}
+        }
+
+        wcArray[0] = wcArray[1];
+        wcArray[1] = PluginConfig.weaponCycles[index1];
+
+        WeaponCycle wc = wcArray[1];
+        if(wc.rememberVariation == false) {wc.currentIndex = 0;}
+        for (int j = 0; j < wc.weaponEnums.Length; j++)
+        {
+            if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+            if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+        }
+        int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+        newSlot = arr[0]; newVariation = arr[1];
+    }
+
+    public void VariationBindLogic()
+    {
+        if(MonoSingleton<InputManager>.Instance.InputSource.Actions.Weapon.VariationSlot1.WasPressedThisFrame()) 
+        {
+            WeaponCycle wc = wcArray[1];
+            wc.currentIndex = 0;
+            for (int j = 0; j < wc.weaponEnums.Length; j++)
+            {
+                if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+                if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+            }
+            int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+            newSlot = arr[0]; newVariation = arr[1];
+        }
+        if(MonoSingleton<InputManager>.Instance.InputSource.Actions.Weapon.VariationSlot2.WasPressedThisFrame()) 
+        {
+            WeaponCycle wc = wcArray[1];
+            wc.currentIndex = 1;
+            for (int j = 0; j < wc.weaponEnums.Length; j++)
+            {
+                if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+                if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+            }
+            int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+            newSlot = arr[0]; newVariation = arr[1];
+        }
+        if(MonoSingleton<InputManager>.Instance.InputSource.Actions.Weapon.VariationSlot3.WasPressedThisFrame()) 
+        {
+            WeaponCycle wc = wcArray[1];
+            wc.currentIndex = 2;
+            for (int j = 0; j < wc.weaponEnums.Length; j++)
+            {
+                if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+                if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+            }
+            int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+            newSlot = arr[0]; newVariation = arr[1];
+        }
+    }
+
+    public void ScrollLogic()
+    {
+        //implement scrollWeapons
+        if(wcArray[1] != null && wcArray[1].scrollThroughWeaponCycle == true) //slightly buggy?
+        {
+            if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollEnabled")) {scrollEnabled =   (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollEnabled"];}
+            if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollVariations")) {scrollVariation = (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollVariations"];}
+            if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollReversed")) {scrollReversed =  (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollReversed"];}
+            if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollWeapons")) {scrollWeapons =  (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollWeapons"];}
+
+            float mult = 1f;
+            if(scrollReversed){mult = -1f;}
+            float value = Input.GetAxis("Mouse ScrollWheel") * mult; 
+            if(scrollEnabled && scrollVariation)
+            {
+                if(value >= 0.1f)
+                {
+                    WeaponCycle wc = wcArray[1];
+                    wc.currentIndex += 1;
+                    for (int i = 0; i < wc.weaponEnums.Length; i++)
+                    {
+                        if(wc.currentIndex >= wc.weaponEnums.Length) 
+                        {
+                            wc.currentIndex = 0;
+                            if(scrollWeapons)
+                            {
+                                SwitchToNextCustomSlot();
+                                break;
+                            }
+                        }
+                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+                    }
+                    int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+                    newSlot = arr[0]; newVariation = arr[1];
+                }
+                if(value <= -0.1f)
+                {
+                    WeaponCycle wc = wcArray[1];
+                    wc.currentIndex += -1;
+                    for (int i = 0; i < wc.weaponEnums.Length; i++)
+                    {
+                        if(wc.currentIndex < 0) 
+                        {
+                            wc.currentIndex = wc.weaponEnums.Length - 1;
+                            if(scrollWeapons)
+                            {
+                                SwitchToPrevCustomSlot();
+                                break;
+                            }
+                        }
+                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += -1;}
+                    }
+                    int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+                    newSlot = arr[0]; newVariation = arr[1];
+                }
+            }
+
+            if(scrollEnabled && !scrollVariation && scrollWeapons)
+            {
+                if(value >= 0.1f)
+                {
+                    SwitchToNextCustomSlot();
+                }
+                if(value <= -0.1f)
+                {
+                    SwitchToPrevCustomSlot();
+                }
+            }
+        }
+    }
+
+    public void AlterVariationLogic()
+    {
+        if(MonoSingleton<InputManager>.Instance.InputSource.NextVariation.WasPerformedThisFrame)
+        {
+            WeaponCycle wc = wcArray[1];
+            wc.currentIndex += 1;
+            for (int i = 0; i < wc.weaponEnums.Length; i++)
+            {
+                if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+                if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+            }
+            int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+            newSlot = arr[0]; newVariation = arr[1];
+        }
+        if(MonoSingleton<InputManager>.Instance.InputSource.PreviousVariation.WasCanceledThisFrame)
+        {
+            WeaponCycle wc = wcArray[1];
+            wc.currentIndex += -1;
+            for (int i = 0; i < wc.weaponEnums.Length; i++)
+            {
+                if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += -1;}
+                if(wc.currentIndex < 0) {wc.currentIndex = wc.weaponEnums.Length - 1;}
+            }
+            int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+            newSlot = arr[0]; newVariation = arr[1];
+        }
+    }
+
+    public void AlterWeaponLogic()
+    {
+        if(MonoSingleton<InputManager>.Instance.InputSource.NextWeapon.WasCanceledThisFrame)
+        {
+            SwitchToNextCustomSlot();
+        }
+
+        if(MonoSingleton<InputManager>.Instance.InputSource.PrevWeapon.WasCanceledThisFrame)
+        {
+            SwitchToPrevCustomSlot();
+        }
+    }
+
+    public void LastWeaponLogic()
+    {
+        if(wcArray[0] != null && MonoSingleton<InputManager>.Instance.InputSource.LastWeapon.WasCanceledThisFrame)
+        {
+            WeaponCycle wcTemp = wcArray[1];
+            wcArray[1] = wcArray[0];
+            wcArray[0] = wcTemp;
+
+            WeaponCycle wc = wcArray[1];
+            int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+            newSlot = arr[0]; newVariation = arr[1];
+        }
+    }
+
+    public void SwitchWeaponLogic()
     {
         for (int i = 0; i < PluginConfig.weaponCycles.Length; i++)
         {
             WeaponCycle wc = PluginConfig.weaponCycles[i];
-            if(lastWeaponSwitchDueToCycleNumber == i && wc.swapThroughWeaponCycle == true)
-            {
-                if(lastWeaponSwitchDueToCycleNumber >= 0 && MonoSingleton<InputManager>.Instance.InputSource.NextVariation.WasPerformedThisFrame)
-                {
-                    if(findNextRealWeaponInCycle(wc) == false) {return false;}
-                    switchInWeaponCycle(wc, i);
-                    return true;
-                }
-                if(lastWeaponSwitchDueToCycleNumber >= 0 && MonoSingleton<InputManager>.Instance.InputSource.PreviousVariation.WasCanceledThisFrame)
-                {
-                    if(findLastRealWeaponInCycle(wc) == false) {return false;}
-                    switchInWeaponCycle(wc, i);
-                    return true;
-                }
-            }
-            if(lastWeaponSwitchDueToCycleNumber == i && wc.scrollThroughWeaponCycle == true)
-            {
-                if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollEnabled")) {scrollEnabled =   (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollEnabled"];}
-                if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollVariations")) {scrollVariation = (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollVariations"];}
-                if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollReversed")) {scrollReversed =  (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollReversed"];}
-
-                float mult = 1f;
-                if(scrollReversed){mult = -1f;}
-                float value = Input.GetAxis("Mouse ScrollWheel") * mult; 
-                if(scrollEnabled && scrollVariation)
-                {
-                    if(value >= 0.1f)
-                    {
-                        if(findNextRealWeaponInCycle(wc) == false) {return false;}
-                        switchInWeaponCycle(wc, i);
-                        return true;
-                    }
-                    if(value <= -0.1f)
-                    {
-                        if(findLastRealWeaponInCycle(wc) == false) {return false;}
-                        switchInWeaponCycle(wc, i);
-                        return true;
-                    }
-                }
-            }
             if(Input.GetKeyDown(wc.useCode))
             {
-                if(lastWeaponSwitchDueToCycleNumber == -1)
+                bool resetWCIndex = true;
+                if(wc.rememberVariation == true || wc == wcArray[1]) //if not switching to the weapon we had out last
                 {
-                    wc.currentIndex += -1; //if this is our first switch, then offset the effect of going to the next weapon (we want to start on weapon index zero not one)
+                    resetWCIndex = false;
                 }
-                if(findNextRealWeaponInCycle(wc) == false) {return false;} //return because there are no weapons to do operations with.
-                switchInWeaponCycle(wc, i);
-                return true;
+                if(wc != wcArray[1])
+                {
+                    wcArray[0] = wcArray[1];
+                    wcArray[1] = wc;
+                }
+
+                if(wc.swapBehavior == SwapBehaviorEnum.NextVariation)
+                {
+                    wc.currentIndex += 1;
+                    if(resetWCIndex == true) {wc.currentIndex = 0;}
+                }
+                else if(wc.swapBehavior == SwapBehaviorEnum.SameVariation)
+                {
+                    wc.currentIndex += 0;
+                    if(resetWCIndex == true) {wc.currentIndex = 0;}
+                }
+                else if(wc.swapBehavior == SwapBehaviorEnum.FirstVariation)
+                {
+                    wc.currentIndex = 0;
+                }
+
+                for (int j = 0; j < wc.weaponEnums.Length; j++)
+                {
+                    if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+                    if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+                }
+                int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+                newSlot = arr[0]; newVariation = arr[1];
             }
         }
-        return false; //return true only if we did something
+    }
+
+    public void InputLogic()
+    {
+        newSlot = -1;
+        newVariation = -1;
+
+        VariationBindLogic();
+        ScrollLogic();
+        AlterVariationLogic();
+        AlterWeaponLogic();
+        LastWeaponLogic();
+        SwitchWeaponLogic();
+
+        if(newVariation != -1 && newSlot != -1)
+        {
+            if     (newSlot == 0) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot1[newVariation], true);}
+            else if(newSlot == 1) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot2[newVariation], true);}
+            else if(newSlot == 2) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot3[newVariation], true);}
+            else if(newSlot == 3) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot4[newVariation], true);}
+            else if(newSlot == 4) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot5[newVariation], true);}
+        }
     }
 
     public void Update()
     {
         if(!IsGameplayScene() || !modEnabled || IsMenu()) {return;}
-
-        PluginOld.slot = MonoSingleton<GunControl>.Instance.currentSlot;  PluginOld.lastSlot = MonoSingleton<GunControl>.Instance.lastUsedSlot;
-        PluginOld.variation = MonoSingleton<GunControl>.Instance.currentVariation;  PluginOld.lastVariation = MonoSingleton<GunControl>.Instance.lastUsedVariation;
-
-        //if we successfully do a custom weapon cycle weapon switch
-        if(checkForCustomWeaponCycleInput() == true) {goto skipOtherBehavior;}
-        if(legacyModDisabled == false)
-        {
-            PluginOld.LegacyCode();
-        }
-
-        //enable auto switch if we find a change in weapon (done by the player)
-        //done after autoswitch attempted, disabled early in the tick if something happens.
-        if(weapon != MonoSingleton<GunControl>.Instance.currentWeapon) 
-        {
-            PluginOld.tempDisableAutoSwitch = false; //lets allow force switching a weapon
-            lastWeaponSwitchDueToCycleNumber = -1; //-1 for no cycle involved
-            for(int i = 0; i < PluginConfig.weaponCycles.Length; i++) //set to zero because we are no longer in the cycle
-            {
-                PluginConfig.weaponCycles[i].currentIndex = 0;
-            }
-            Debug.Log("WeaponVariantBinds - old weapon: " + weapon + " new: " + MonoSingleton<GunControl>.Instance.currentWeapon);
-        }
-        skipOtherBehavior:
-
-        weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
+        
+        InputLogic();
     }
 }

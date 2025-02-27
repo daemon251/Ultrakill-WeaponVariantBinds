@@ -16,7 +16,7 @@ namespace WeaponVariantBinds;
 //all the legacy code, put here for now, delete later.
 public class PluginOld
 {
-    public static KeyCode[,] weaponKeyCodes = new KeyCode[5, 3];
+    /*public static KeyCode[,] weaponKeyCodes = new KeyCode[5, 3];
     public static bool[,] ignoreWeaponInCycle = new bool[5, 3];
     public static bool tempDisableAutoSwitch = false;
     public static bool SwapVariationIgnoreMod = false;
@@ -230,5 +230,5 @@ public class PluginOld
         { 
             attemptAutoSwitch();
         }
-    }
+    }*/
 }
