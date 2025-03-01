@@ -1,17 +1,28 @@
 # WARNING
 
-This mod is in development. Expect issues. Raise an issue on the github project or contact me at discord preferably through the New Blood discord ultrakill-modding channel at: daemon8363
+Updated for ULTRA_REVAMP. As of writing, you *must* have HideManagerGameObject set to true in BepInEx.cfg.
 
-This mod may conflict with other mods that add or remove weapons. I have attempted to accomodate for these mods.
+Raise an issue on the github project or contact me at discord preferably through the New Blood discord ultrakill-modding channel at: daemon8363
+
+This mod will probably conflict with other mods that add or remove weapons. 
 
 # OVERVIEW
 
-Have you ever had the issue where you have two shotguns and one jackhammer on your shotgun weapon cycle, making fast shotgun swapping difficult? Have you ever wanted to make a specific bind for the marksman revolver? 
+This mod aims to solve issues such as: fast shotgun swapping when a jackhammer is also in your cycle, and not being able to instantly select any specific weapon
+(slot and variation). This mod can help reduce the number of clicks required to do some actions and prevent possible mistakes caused by confusion
+when switching weapons. 
 
-Well, you're in luck! That's the kind of problem that this mod aims to solve.
+The mod does this by giving users the ability to create custom weapon cycles that can contain weapons in any order, in any amount (up to a hundred), and from any
+weapon type.
 
-This mod features two configuration options that go hand-in-hand. The first, is specific weapon variation binds. This means that you can pull any weapon variation (ex. SRS rocket launcher) without having to cycle through your rocket launchers. 
+This mod overrides vanilla weapon switching functionality, which lends itself to weapon mod conflicts.
 
-The second feature is the ability to remove weapons from your weapon cycle, and make them only accessible via the previously mentioned specific weapon variation binds.  
+# HOW IT CAN BE USED
 
-Existing features to switch weapons will continue to work as they do in the vanilla game. This mod overrides no vanilla functionality.
+The vanilla weapon cycles are included. In the advanced options in the weapon cycle, you may choose to ignore weapons in the cycle. To create a bind for the weapon you ignored, you will need to create a weapon cycle of length 1 for it.
+
+Weapon cycles of length 1 can be used to create a bind for a specific weapon (slot and variation). 
+
+Weapon cycles of length 2 will behave how you expect. I find these to be much more manageable than weapon cycles of length 3. 
+
+Weapon cycles of high length can be used to plan out combos, which *might* be useful to speedrunners.
