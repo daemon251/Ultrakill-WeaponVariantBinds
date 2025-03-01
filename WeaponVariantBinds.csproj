@@ -63,10 +63,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>libs\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
-    <Reference Include="Ultrakill-Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL"> <!-- err not quite sure why this is nessecary but we ball-->
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>libs\Managed\Ultrakill-Assembly-CSharp.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
