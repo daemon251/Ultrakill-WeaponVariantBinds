@@ -138,53 +138,69 @@ public class PluginConfig
         //arr[0] is slot, arr[1] is weapon variation
         int[] arr = {500,500}; //causes errors if this value isnt ever overwritten
         arr[0] = (int)(code - 1) / 3;
+        arr[1] = -1;
         for(int i = 0; i < 3; i++)
         {
             //REVOLVER
-            if(MonoSingleton<GunControl>.Instance.slot1[i].GetComponent<Revolver>().gunVariation == 0 && code == WeaponEnum.Piercer_Revolver) {arr[1] = i;}
-            if(MonoSingleton<GunControl>.Instance.slot1[i].GetComponent<Revolver>().gunVariation == 1 && code == WeaponEnum.Marksman_Revolver) {arr[1] = i;}
-            if(MonoSingleton<GunControl>.Instance.slot1[i].GetComponent<Revolver>().gunVariation == 2 && code == WeaponEnum.Sharpshooter_Revolver) {arr[1] = i;}
+            if(i < MonoSingleton<GunControl>.Instance.slot1.Count)
+            {
+                if(MonoSingleton<GunControl>.Instance.slot1[i].GetComponent<Revolver>().gunVariation == 0 && code == WeaponEnum.Piercer_Revolver) {arr[1] = i;}
+                if(MonoSingleton<GunControl>.Instance.slot1[i].GetComponent<Revolver>().gunVariation == 1 && code == WeaponEnum.Marksman_Revolver) {arr[1] = i;}
+                if(MonoSingleton<GunControl>.Instance.slot1[i].GetComponent<Revolver>().gunVariation == 2 && code == WeaponEnum.Sharpshooter_Revolver) {arr[1] = i;}
+            }
             //SHOTGUN
-            if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>() != null) 
+            if(i < MonoSingleton<GunControl>.Instance.slot2.Count)
             {
-                if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>().variation == 0 && code == WeaponEnum.Core_Eject_Shotgun) {arr[1] = i;}
-            }
-            else if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>() != null) 
-            {
-                if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>().variation == 0 && code == WeaponEnum.Core_Eject_Shotgun) {arr[1] = i;}
-            }
-            if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>() != null) 
-            {
-                if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>().variation == 1 && code == WeaponEnum.Pump_Charge_Shotgun) {arr[1] = i;}
-            }
-            else if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>() != null) 
-            {
-                if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>().variation == 1 && code == WeaponEnum.Pump_Charge_Shotgun) {arr[1] = i;}
-            }
-            if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>() != null) 
-            {
-                if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>().variation == 2 && code == WeaponEnum.Sawed_On_Shotgun) {arr[1] = i;}
-            }
-            else if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>() != null) 
-            {
-                if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>().variation == 2 && code == WeaponEnum.Sawed_On_Shotgun) {arr[1] = i;}
+                if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>() != null) 
+                {
+                    if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>().variation == 0 && code == WeaponEnum.Core_Eject_Shotgun) {arr[1] = i;}
+                }
+                else if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>() != null) 
+                {
+                    if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>().variation == 0 && code == WeaponEnum.Core_Eject_Shotgun) {arr[1] = i;}
+                }
+                if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>() != null) 
+                {
+                    if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>().variation == 1 && code == WeaponEnum.Pump_Charge_Shotgun) {arr[1] = i;}
+                }
+                else if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>() != null) 
+                {
+                    if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>().variation == 1 && code == WeaponEnum.Pump_Charge_Shotgun) {arr[1] = i;}
+                }
+                if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>() != null) 
+                {
+                    if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<Shotgun>().variation == 2 && code == WeaponEnum.Sawed_On_Shotgun) {arr[1] = i;}
+                }
+                else if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>() != null) 
+                {
+                    if(MonoSingleton<GunControl>.Instance.slot2[i].GetComponent<ShotgunHammer>().variation == 2 && code == WeaponEnum.Sawed_On_Shotgun) {arr[1] = i;}
+                }
             }
 
             //NAILGUN
             //hakita didnt order these the way I expected
-            if(MonoSingleton<GunControl>.Instance.slot3[i].GetComponent<Nailgun>().variation == 1 && code == WeaponEnum.Attractor_Nailgun) {arr[1] = i;}
-            if(MonoSingleton<GunControl>.Instance.slot3[i].GetComponent<Nailgun>().variation == 0 && code == WeaponEnum.Overheat_Nailgun) {arr[1] = i;}
-            if(MonoSingleton<GunControl>.Instance.slot3[i].GetComponent<Nailgun>().variation == 2 && code == WeaponEnum.Jumpstart_Nailgun) {arr[1] = i;}
+            if(i < MonoSingleton<GunControl>.Instance.slot3.Count)
+            {
+                if(MonoSingleton<GunControl>.Instance.slot3[i].GetComponent<Nailgun>().variation == 1 && code == WeaponEnum.Attractor_Nailgun) {arr[1] = i;}
+                if(MonoSingleton<GunControl>.Instance.slot3[i].GetComponent<Nailgun>().variation == 0 && code == WeaponEnum.Overheat_Nailgun) {arr[1] = i;}
+                if(MonoSingleton<GunControl>.Instance.slot3[i].GetComponent<Nailgun>().variation == 2 && code == WeaponEnum.Jumpstart_Nailgun) {arr[1] = i;}
+            }
 
             //RAILCANNON
-            if(MonoSingleton<GunControl>.Instance.slot4[i].GetComponent<Railcannon>().variation == 0 && code == WeaponEnum.Electric_Railcannon) {arr[1] = i;}
-            if(MonoSingleton<GunControl>.Instance.slot4[i].GetComponent<Railcannon>().variation == 1 && code == WeaponEnum.Screwdriver) {arr[1] = i;}
-            if(MonoSingleton<GunControl>.Instance.slot4[i].GetComponent<Railcannon>().variation == 2 && code == WeaponEnum.Malicious_Railcannon) {arr[1] = i;}
+            if(i < MonoSingleton<GunControl>.Instance.slot4.Count)
+            {
+                if(MonoSingleton<GunControl>.Instance.slot4[i].GetComponent<Railcannon>().variation == 0 && code == WeaponEnum.Electric_Railcannon) {arr[1] = i;}
+                if(MonoSingleton<GunControl>.Instance.slot4[i].GetComponent<Railcannon>().variation == 1 && code == WeaponEnum.Screwdriver) {arr[1] = i;}
+                if(MonoSingleton<GunControl>.Instance.slot4[i].GetComponent<Railcannon>().variation == 2 && code == WeaponEnum.Malicious_Railcannon) {arr[1] = i;}
+            }
 
             //ROCKETLAUNCHER
-            if(MonoSingleton<GunControl>.Instance.slot5[i].GetComponent<RocketLauncher>().variation == 0 && code == WeaponEnum.Freezeframe_Rocket_Launcher) {arr[1] = i;}
-            if(MonoSingleton<GunControl>.Instance.slot5[i].GetComponent<RocketLauncher>().variation == 1 && code == WeaponEnum.SRS_Rocket_Launcher) {arr[1] = i;}
-            if(MonoSingleton<GunControl>.Instance.slot5[i].GetComponent<RocketLauncher>().variation == 2 && code == WeaponEnum.Firestarter_Rocket_Launcher) {arr[1] = i;}
+            if(i < MonoSingleton<GunControl>.Instance.slot5.Count)
+            {
+                if(MonoSingleton<GunControl>.Instance.slot5[i].GetComponent<RocketLauncher>().variation == 0 && code == WeaponEnum.Freezeframe_Rocket_Launcher) {arr[1] = i;}
+                if(MonoSingleton<GunControl>.Instance.slot5[i].GetComponent<RocketLauncher>().variation == 1 && code == WeaponEnum.SRS_Rocket_Launcher) {arr[1] = i;}
+                if(MonoSingleton<GunControl>.Instance.slot5[i].GetComponent<RocketLauncher>().variation == 2 && code == WeaponEnum.Firestarter_Rocket_Launcher) {arr[1] = i;}
+            }
         }
         
         return arr;

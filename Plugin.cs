@@ -18,17 +18,15 @@ namespace WeaponVariantBinds;
 
 //TO DO:
 //organize code
-//add tutorial images
 //unequipped weapons cause problems?
 //delete all at once, bad?
-//KeyCode.WheelUp
+//clear weaponCycles when needed
 
 [BepInPlugin("WeaponVariantBinds", "WeaponVariantBinds", "0.01")]
 public class Plugin : BaseUnityPlugin
 {
     public static bool modEnabled = true;
     public static GameObject weapon = null;
-
     public static bool scrollEnabled = false;
     public static bool scrollVariation = false;
     public static bool scrollReversed = false;
@@ -53,7 +51,7 @@ public class Plugin : BaseUnityPlugin
     }
     public static bool IsMenu()
     {
-        if(!MonoSingleton<OptionsManager>.Instance.paused && !MonoSingleton<FistControl>.Instance.shopping && !GameStateManager.Instance.PlayerInputLocked)
+        if(MonoSingleton<OptionsManager>.Instance != null && !MonoSingleton<OptionsManager>.Instance.paused && !MonoSingleton<FistControl>.Instance.shopping && GameStateManager.Instance != null && !GameStateManager.Instance.PlayerInputLocked)
         {
             return false;
         }
