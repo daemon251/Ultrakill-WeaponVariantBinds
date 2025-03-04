@@ -358,7 +358,7 @@ public class Plugin : BaseUnityPlugin
     {
         bool resetWCIndex = true;
         bool newCycleBool = false;
-        if(wc != wcArray[1]) {newCycleBool = true;}
+        if(wc != wcArray[1] && wc.rememberVariation) {newCycleBool = true;}
         if(wc.rememberVariation == true || wc == wcArray[1]) //if not switching to the weapon we had out last
         {
             resetWCIndex = false;
@@ -369,7 +369,7 @@ public class Plugin : BaseUnityPlugin
             wcArray[1] = wc;
         }
 
-        if(wc.swapBehavior == SwapBehaviorEnum.NextVariation && newCycleBool == false)
+        if(wc.swapBehavior == SwapBehaviorEnum.NextVariation && (newCycleBool == false))
         {
             wc.currentIndex += 1;
             if(resetWCIndex == true) {wc.currentIndex = 0;}
