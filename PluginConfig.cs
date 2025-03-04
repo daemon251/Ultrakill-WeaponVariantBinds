@@ -414,97 +414,30 @@ public class PluginConfig
         }
     }
     public static void DetermineVanillaWeaponCycles()
-    {
-        String revolverOrder = "1324";
-        String shotgunOrder = "1324";
-        String nailgunOrder = "1324";
-        String railcannonOrder = "1324";
-        String rocket_launcherOrder = "1324";
+    {   
+        if(MonoSingleton<GunControl>.Instance != null) 
+        {
+            if(MonoSingleton<GunControl>.Instance.slot1.Count > 0) {vanillaWeaponCycles[0].weaponEnums[0] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot1[0]);}
+            if(MonoSingleton<GunControl>.Instance.slot1.Count > 1) {vanillaWeaponCycles[0].weaponEnums[1] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot1[1]);}
+            if(MonoSingleton<GunControl>.Instance.slot1.Count > 2) {vanillaWeaponCycles[0].weaponEnums[2] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot1[2]);}
 
-        if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("weapon.rev.order")) {revolverOrder = (String)MonoSingleton<PrefsManager>.Instance.prefMap["weapon.rev.order"];}
-        if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("weapon.sho.order")) {shotgunOrder = (String)MonoSingleton<PrefsManager>.Instance.prefMap["weapon.sho.order"];}
-        if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("weapon.nai.order")) {nailgunOrder = (String)MonoSingleton<PrefsManager>.Instance.prefMap["weapon.nai.order"];}
-        if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("weapon.rai.order")) {railcannonOrder = (String)MonoSingleton<PrefsManager>.Instance.prefMap["weapon.rai.order"];}
-        if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("weapon.rock.order")) {rocket_launcherOrder = (String)MonoSingleton<PrefsManager>.Instance.prefMap["weapon.rock.order"];}
+            if(MonoSingleton<GunControl>.Instance.slot2.Count > 0) {vanillaWeaponCycles[1].weaponEnums[0] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot2[0]);}
+            if(MonoSingleton<GunControl>.Instance.slot2.Count > 1) {vanillaWeaponCycles[1].weaponEnums[1] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot2[1]);}
+            if(MonoSingleton<GunControl>.Instance.slot2.Count > 2) {vanillaWeaponCycles[1].weaponEnums[2] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot2[2]);}
 
-        WeaponEnum[] wcRevolverEnumArray = {WeaponEnum.Piercer_Revolver, WeaponEnum.Marksman_Revolver, WeaponEnum.Sharpshooter_Revolver};
-        WeaponEnum[] wcShotgunEnumArray = {WeaponEnum.Core_Eject_Shotgun, WeaponEnum.Pump_Charge_Shotgun, WeaponEnum.Sawed_On_Shotgun}; 
-        WeaponEnum[] wcNailgunEnumArray = {WeaponEnum.Attractor_Nailgun, WeaponEnum.Overheat_Nailgun, WeaponEnum.Jumpstart_Nailgun};
-        WeaponEnum[] wcRailcannonEnumArray = {WeaponEnum.Electric_Railcannon, WeaponEnum.Screwdriver, WeaponEnum.Malicious_Railcannon}; 
-        WeaponEnum[] wcRocket_LauncherEnumArray = {WeaponEnum.Freezeframe_Rocket_Launcher, WeaponEnum.SRS_Rocket_Launcher, WeaponEnum.Firestarter_Rocket_Launcher}; 
+            if(MonoSingleton<GunControl>.Instance.slot3.Count > 0) {vanillaWeaponCycles[2].weaponEnums[0] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot3[0]);}
+            if(MonoSingleton<GunControl>.Instance.slot3.Count > 1) {vanillaWeaponCycles[2].weaponEnums[1] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot3[1]);}
+            if(MonoSingleton<GunControl>.Instance.slot3.Count > 2) {vanillaWeaponCycles[2].weaponEnums[2] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot3[2]);}
 
-        //yeah don't ask me why it's like this, the orders from prefs follow no discernible pattern. 
-        //holy spaghetti man
+            if(MonoSingleton<GunControl>.Instance.slot4.Count > 0) {vanillaWeaponCycles[3].weaponEnums[0] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot4[0]);}
+            if(MonoSingleton<GunControl>.Instance.slot4.Count > 1) {vanillaWeaponCycles[3].weaponEnums[1] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot4[1]);}
+            if(MonoSingleton<GunControl>.Instance.slot4.Count > 2) {vanillaWeaponCycles[3].weaponEnums[2] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot4[2]);}
 
-        //1 2 3 1324
-        //1 3 2 1234
-        //2 1 3 2314
-        //2 3 1 3214 
-        //3 1 2 2134
-        //3 2 1 3124
-        if(revolverOrder.Equals("1324")) {vanillaWeaponCycles[0].weaponEnums[0] = wcRevolverEnumArray[0]; vanillaWeaponCycles[0].weaponEnums[1] = wcRevolverEnumArray[1]; vanillaWeaponCycles[0].weaponEnums[2] = wcRevolverEnumArray[2];}
-        if(revolverOrder.Equals("1234")) {vanillaWeaponCycles[0].weaponEnums[0] = wcRevolverEnumArray[0]; vanillaWeaponCycles[0].weaponEnums[1] = wcRevolverEnumArray[2]; vanillaWeaponCycles[0].weaponEnums[2] = wcRevolverEnumArray[1];}
-        if(revolverOrder.Equals("2314")) {vanillaWeaponCycles[0].weaponEnums[0] = wcRevolverEnumArray[1]; vanillaWeaponCycles[0].weaponEnums[1] = wcRevolverEnumArray[0]; vanillaWeaponCycles[0].weaponEnums[2] = wcRevolverEnumArray[2];}
-        if(revolverOrder.Equals("3214")) {vanillaWeaponCycles[0].weaponEnums[0] = wcRevolverEnumArray[1]; vanillaWeaponCycles[0].weaponEnums[1] = wcRevolverEnumArray[2]; vanillaWeaponCycles[0].weaponEnums[2] = wcRevolverEnumArray[0];}
-        if(revolverOrder.Equals("2134")) {vanillaWeaponCycles[0].weaponEnums[0] = wcRevolverEnumArray[2]; vanillaWeaponCycles[0].weaponEnums[1] = wcRevolverEnumArray[0]; vanillaWeaponCycles[0].weaponEnums[2] = wcRevolverEnumArray[1];}
-        if(revolverOrder.Equals("3124")) {vanillaWeaponCycles[0].weaponEnums[0] = wcRevolverEnumArray[2]; vanillaWeaponCycles[0].weaponEnums[1] = wcRevolverEnumArray[1]; vanillaWeaponCycles[0].weaponEnums[2] = wcRevolverEnumArray[0];}
-        //Debug.Log(10 + " " + vanillaWeaponCycles[0].weaponEnums[0] + " " + vanillaWeaponCycles[0].weaponEnums[1] + " " + vanillaWeaponCycles[0].weaponEnums[2]);
+            if(MonoSingleton<GunControl>.Instance.slot5.Count > 0) {vanillaWeaponCycles[4].weaponEnums[0] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot5[0]);}
+            if(MonoSingleton<GunControl>.Instance.slot5.Count > 1) {vanillaWeaponCycles[4].weaponEnums[1] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot5[1]);}
+            if(MonoSingleton<GunControl>.Instance.slot5.Count > 2) {vanillaWeaponCycles[4].weaponEnums[2] = convertWeaponToWeaponEnum(MonoSingleton<GunControl>.Instance.slot5[2]);}
+        }
 
-        //1 2 3 1234
-        //1 3 2 1324
-        //2 1 3 2134
-        //2 3 1 3124
-        //3 1 2 2314
-        //3 2 1 3214
-        if(shotgunOrder.Equals("1234")) {vanillaWeaponCycles[1].weaponEnums[0] = wcShotgunEnumArray[0]; vanillaWeaponCycles[1].weaponEnums[1] = wcShotgunEnumArray[1]; vanillaWeaponCycles[1].weaponEnums[2] = wcShotgunEnumArray[2];}
-        if(shotgunOrder.Equals("1324")) {vanillaWeaponCycles[1].weaponEnums[0] = wcShotgunEnumArray[0]; vanillaWeaponCycles[1].weaponEnums[1] = wcShotgunEnumArray[2]; vanillaWeaponCycles[1].weaponEnums[2] = wcShotgunEnumArray[1];}
-        if(shotgunOrder.Equals("2134")) {vanillaWeaponCycles[1].weaponEnums[0] = wcShotgunEnumArray[1]; vanillaWeaponCycles[1].weaponEnums[1] = wcShotgunEnumArray[0]; vanillaWeaponCycles[1].weaponEnums[2] = wcShotgunEnumArray[2];}
-        if(shotgunOrder.Equals("3124")) {vanillaWeaponCycles[1].weaponEnums[0] = wcShotgunEnumArray[1]; vanillaWeaponCycles[1].weaponEnums[1] = wcShotgunEnumArray[2]; vanillaWeaponCycles[1].weaponEnums[2] = wcShotgunEnumArray[0];}
-        if(shotgunOrder.Equals("2314")) {vanillaWeaponCycles[1].weaponEnums[0] = wcShotgunEnumArray[2]; vanillaWeaponCycles[1].weaponEnums[1] = wcShotgunEnumArray[0]; vanillaWeaponCycles[1].weaponEnums[2] = wcShotgunEnumArray[1];}
-        if(shotgunOrder.Equals("3214")) {vanillaWeaponCycles[1].weaponEnums[0] = wcShotgunEnumArray[2]; vanillaWeaponCycles[1].weaponEnums[1] = wcShotgunEnumArray[1]; vanillaWeaponCycles[1].weaponEnums[2] = wcShotgunEnumArray[0];}
-        //Debug.Log(20 + " " + vanillaWeaponCycles[1].weaponEnums[0] + " " + vanillaWeaponCycles[1].weaponEnums[1] + " " + vanillaWeaponCycles[1].weaponEnums[2]);
-
-        //1 2 3 1234
-        //1 3 2 1324
-        //2 1 3 2134
-        //2 3 1 3124
-        //3 1 2 2314
-        //3 2 1 3214
-        if(nailgunOrder.Equals("1234")) {vanillaWeaponCycles[2].weaponEnums[0] = wcNailgunEnumArray[0]; vanillaWeaponCycles[2].weaponEnums[1] = wcNailgunEnumArray[1]; vanillaWeaponCycles[2].weaponEnums[2] = wcNailgunEnumArray[2];}
-        if(nailgunOrder.Equals("1324")) {vanillaWeaponCycles[2].weaponEnums[0] = wcNailgunEnumArray[0]; vanillaWeaponCycles[2].weaponEnums[1] = wcNailgunEnumArray[2]; vanillaWeaponCycles[2].weaponEnums[2] = wcNailgunEnumArray[1];}
-        if(nailgunOrder.Equals("2134")) {vanillaWeaponCycles[2].weaponEnums[0] = wcNailgunEnumArray[1]; vanillaWeaponCycles[2].weaponEnums[1] = wcNailgunEnumArray[0]; vanillaWeaponCycles[2].weaponEnums[2] = wcNailgunEnumArray[2];}
-        if(nailgunOrder.Equals("3124")) {vanillaWeaponCycles[2].weaponEnums[0] = wcNailgunEnumArray[1]; vanillaWeaponCycles[2].weaponEnums[1] = wcNailgunEnumArray[2]; vanillaWeaponCycles[2].weaponEnums[2] = wcNailgunEnumArray[0];}
-        if(nailgunOrder.Equals("2314")) {vanillaWeaponCycles[2].weaponEnums[0] = wcNailgunEnumArray[2]; vanillaWeaponCycles[2].weaponEnums[1] = wcNailgunEnumArray[0]; vanillaWeaponCycles[2].weaponEnums[2] = wcNailgunEnumArray[1];}
-        if(nailgunOrder.Equals("3214")) {vanillaWeaponCycles[2].weaponEnums[0] = wcNailgunEnumArray[2]; vanillaWeaponCycles[2].weaponEnums[1] = wcNailgunEnumArray[1]; vanillaWeaponCycles[2].weaponEnums[2] = wcNailgunEnumArray[0];}
-        //Debug.Log(30 + " " + vanillaWeaponCycles[2].weaponEnums[0] + " " + vanillaWeaponCycles[2].weaponEnums[1] + " " + vanillaWeaponCycles[2].weaponEnums[2]);
-
-        //1 2 3 1234
-        //1 3 2 1324?
-        //2 1 3 2134?
-        //2 3 1 3124?
-        //3 1 2 2314?
-        //3 2 1 3214?
-        if(railcannonOrder.Equals("1234")) {vanillaWeaponCycles[3].weaponEnums[0] = wcRailcannonEnumArray[0]; vanillaWeaponCycles[3].weaponEnums[1] = wcRailcannonEnumArray[1]; vanillaWeaponCycles[3].weaponEnums[2] = wcRailcannonEnumArray[2];}
-        if(railcannonOrder.Equals("1324")) {vanillaWeaponCycles[3].weaponEnums[0] = wcRailcannonEnumArray[0]; vanillaWeaponCycles[3].weaponEnums[1] = wcRailcannonEnumArray[2]; vanillaWeaponCycles[3].weaponEnums[2] = wcRailcannonEnumArray[1];}
-        if(railcannonOrder.Equals("2134")) {vanillaWeaponCycles[3].weaponEnums[0] = wcRailcannonEnumArray[1]; vanillaWeaponCycles[3].weaponEnums[1] = wcRailcannonEnumArray[0]; vanillaWeaponCycles[3].weaponEnums[2] = wcRailcannonEnumArray[2];}
-        if(railcannonOrder.Equals("3124")) {vanillaWeaponCycles[3].weaponEnums[0] = wcRailcannonEnumArray[1]; vanillaWeaponCycles[3].weaponEnums[1] = wcRailcannonEnumArray[2]; vanillaWeaponCycles[3].weaponEnums[2] = wcRailcannonEnumArray[0];}
-        if(railcannonOrder.Equals("2314")) {vanillaWeaponCycles[3].weaponEnums[0] = wcRailcannonEnumArray[2]; vanillaWeaponCycles[3].weaponEnums[1] = wcRailcannonEnumArray[0]; vanillaWeaponCycles[3].weaponEnums[2] = wcRailcannonEnumArray[1];}
-        if(railcannonOrder.Equals("3214")) {vanillaWeaponCycles[3].weaponEnums[0] = wcRailcannonEnumArray[2]; vanillaWeaponCycles[3].weaponEnums[1] = wcRailcannonEnumArray[1]; vanillaWeaponCycles[3].weaponEnums[2] = wcRailcannonEnumArray[0];}
-        //Debug.Log(40 + " " + vanillaWeaponCycles[3].weaponEnums[0] + " " + vanillaWeaponCycles[3].weaponEnums[1] + " " + vanillaWeaponCycles[3].weaponEnums[2]);
-
-        //1 2 3 1234
-        //1 3 2 1324?
-        //2 1 3 2134?
-        //2 3 1 3124?
-        //3 1 2 2314?
-        //3 2 1 3214?
-        if(rocket_launcherOrder.Equals("1234")) {vanillaWeaponCycles[4].weaponEnums[0] = wcRocket_LauncherEnumArray[0]; vanillaWeaponCycles[4].weaponEnums[1] = wcRocket_LauncherEnumArray[1]; vanillaWeaponCycles[4].weaponEnums[2] = wcRocket_LauncherEnumArray[2];}
-        if(rocket_launcherOrder.Equals("1324")) {vanillaWeaponCycles[4].weaponEnums[0] = wcRocket_LauncherEnumArray[0]; vanillaWeaponCycles[4].weaponEnums[1] = wcRocket_LauncherEnumArray[2]; vanillaWeaponCycles[4].weaponEnums[2] = wcRocket_LauncherEnumArray[1];}
-        if(rocket_launcherOrder.Equals("2134")) {vanillaWeaponCycles[4].weaponEnums[0] = wcRocket_LauncherEnumArray[1]; vanillaWeaponCycles[4].weaponEnums[1] = wcRocket_LauncherEnumArray[0]; vanillaWeaponCycles[4].weaponEnums[2] = wcRocket_LauncherEnumArray[2];}
-        if(rocket_launcherOrder.Equals("3124")) {vanillaWeaponCycles[4].weaponEnums[0] = wcRocket_LauncherEnumArray[1]; vanillaWeaponCycles[4].weaponEnums[1] = wcRocket_LauncherEnumArray[2]; vanillaWeaponCycles[4].weaponEnums[2] = wcRocket_LauncherEnumArray[0];}
-        if(rocket_launcherOrder.Equals("2314")) {vanillaWeaponCycles[4].weaponEnums[0] = wcRocket_LauncherEnumArray[2]; vanillaWeaponCycles[4].weaponEnums[1] = wcRocket_LauncherEnumArray[0]; vanillaWeaponCycles[4].weaponEnums[2] = wcRocket_LauncherEnumArray[1];}
-        if(rocket_launcherOrder.Equals("3214")) {vanillaWeaponCycles[4].weaponEnums[0] = wcRocket_LauncherEnumArray[2]; vanillaWeaponCycles[4].weaponEnums[1] = wcRocket_LauncherEnumArray[1]; vanillaWeaponCycles[4].weaponEnums[2] = wcRocket_LauncherEnumArray[0];}
-        //Debug.Log(50 + " " + vanillaWeaponCycles[4].weaponEnums[0] + " " + vanillaWeaponCycles[4].weaponEnums[1] + " " + vanillaWeaponCycles[4].weaponEnums[2]);
         for(int i = 0; i < 5; i++)
         {
             for(int j = 0; j < 3; j++)
