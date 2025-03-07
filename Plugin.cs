@@ -1,18 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using BepInEx;
-
+﻿using BepInEx;
 using UnityEngine;
 using HarmonyLib;
-using System.Runtime.CompilerServices;
 using System;
-using UnityEngine.SocialPlatforms;
 using System.Linq;
-using UnityEngine.InputSystem;
-using UnityEngine.UIElements;
-using System.ComponentModel;
-using System.Net.WebSockets;
+using BepInEx.Logging;
 
 namespace WeaponVariantBinds;
 
@@ -20,7 +11,8 @@ namespace WeaponVariantBinds;
 //organize code
 //unequipped weapons cause problems?
 //delete all at once, bad?
-//clear weaponCycles when needed
+//weapon slot 6
+//dual wield
 
 [BepInPlugin("WeaponVariantBinds", "WeaponVariantBinds", "0.01")]
 public class Plugin : BaseUnityPlugin
@@ -31,9 +23,10 @@ public class Plugin : BaseUnityPlugin
     public static bool scrollVariation = false;
     public static bool scrollReversed = false;
     public static bool scrollWeapons = false;
-
+    public static ManualLogSource logger;
     private void Awake()
     {
+        logger = new ManualLogSource("WeaponVariantBinds"); BepInEx.Logging.Logger.Sources.Add(logger);
         PluginConfig.InitVanillaWeaponCycles();
         PluginConfig.WeaponVariantBindsConfig();
         wcArray[0] = PluginConfig.vanillaWeaponCycles[1];
@@ -62,7 +55,73 @@ public class Plugin : BaseUnityPlugin
 
     int newSlot = -1;
     int newVariation = -1;
-
+    public void IfSlotIsIgnoredLogic(bool goingToNext)
+    {
+        if(goingToNext == true) //go next
+        {
+            for(int i = 0; i < 105; i++)
+            {
+                WeaponCycle wc = wcArray[1];
+                if(wc.skipOverThisCycle == true)
+                {
+                    if((PluginConfig.vanillaWeaponCycles.Contains(wc) && wc != PluginConfig.vanillaWeaponCycles[4]) || wc == PluginConfig.weaponCycles[PluginConfig.numWeaponCyclesActive - 2]) //switch to next vanilla wc
+                    {
+                        int index = 0;
+                        if(wc == PluginConfig.vanillaWeaponCycles[0]) {index = 1;}
+                        if(wc == PluginConfig.vanillaWeaponCycles[1]) {index = 2;}
+                        if(wc == PluginConfig.vanillaWeaponCycles[2]) {index = 3;}
+                        if(wc == PluginConfig.vanillaWeaponCycles[3]) {index = 4;}
+                        wcArray[1] = PluginConfig.vanillaWeaponCycles[index];
+                    }
+                    else //switch to next custom wc
+                    {
+                        int index = 0;
+                        for(int j = 0; j < 99; j++)
+                        {
+                            if(wc == PluginConfig.weaponCycles[j])
+                            {
+                                index = j + 1;
+                            }
+                        }
+                        wcArray[1] = PluginConfig.weaponCycles[index];
+                    }
+                }
+                else {break;}
+            }
+        }
+        else if(goingToNext == false) //go prev
+        {
+            for(int i = 0; i < 105; i++)
+            {
+                WeaponCycle wc = wcArray[1];
+                if(wc.skipOverThisCycle == true)
+                {
+                    if((PluginConfig.vanillaWeaponCycles.Contains(wc) && wc != PluginConfig.vanillaWeaponCycles[0]) || wc == PluginConfig.weaponCycles[0]) //switch to prev vanilla wc
+                    {
+                        int index = 4;
+                        if(wc == PluginConfig.vanillaWeaponCycles[1]) {index = 0;}
+                        if(wc == PluginConfig.vanillaWeaponCycles[2]) {index = 1;}
+                        if(wc == PluginConfig.vanillaWeaponCycles[3]) {index = 2;}
+                        if(wc == PluginConfig.vanillaWeaponCycles[4]) {index = 3;}
+                        wcArray[1] = PluginConfig.vanillaWeaponCycles[index];
+                    }
+                    else
+                    {
+                        int index = 0;
+                        for(int j = 1; j < 100; j++)
+                        {
+                            if(wc == PluginConfig.weaponCycles[j])
+                            {
+                                index = j - 1;
+                            }
+                        }
+                        wcArray[1] = PluginConfig.weaponCycles[index];
+                    }
+                }
+                else {break;}
+            }
+        }
+    }
     public void SwitchToNextCustomSlot() 
     {
         WeaponCycle wcTemp = wcArray[1];
@@ -109,6 +168,8 @@ public class Plugin : BaseUnityPlugin
             wcArray[1] = PluginConfig.weaponCycles[index1];
         }
         end:;
+
+        IfSlotIsIgnoredLogic(true);
 
         WeaponCycle wc = wcArray[1];
         if(wc.rememberVariation == false) {wc.currentIndex = 0;}
@@ -166,6 +227,8 @@ public class Plugin : BaseUnityPlugin
             wcArray[1] = PluginConfig.weaponCycles[index1];
         }
         end:;
+
+        IfSlotIsIgnoredLogic(false);
 
         WeaponCycle wc = wcArray[1];
         if(wc.rememberVariation == false) {wc.currentIndex = 0;}
@@ -234,9 +297,10 @@ public class Plugin : BaseUnityPlugin
     }
     public void ScrollLogic() //bugs out if you do it too fast
     {
+        //this is slighlty buggy because we aren't preventing base game scrolling, and my version and the game's version of scrolling definitions are slightly different
         WeaponCycle wc = wcArray[1];
         //if(wc != null && wc.scrollThroughWeaponCycle == false) {return;}
-        if(wcArray[1] != null) //slightly buggy?
+        if(wcArray[1] != null) 
         {
             if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollEnabled")) {scrollEnabled =   (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollEnabled"];}
             if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollVariations")) {scrollVariation = (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollVariations"];}
@@ -246,6 +310,7 @@ public class Plugin : BaseUnityPlugin
             float mult = 1f;
             if(scrollReversed){mult = -1f;}
             float value = Input.GetAxis("Mouse ScrollWheel") * mult; 
+            //float value = Mouse.current.scroll.ReadValue().y * mult; //copied from guncontrol, wish I could use this but Mouse is some mystery object there I cant use
 
             if(scrollEnabled && scrollVariation)
             {
@@ -424,6 +489,16 @@ public class Plugin : BaseUnityPlugin
             SwitchToWeapon(wc);
             return;
         }
+        if(MonoSingleton<InputManager>.Instance.InputSource.Slot6.WasPerformedThisFrame)
+        {
+            WeaponCycle wc = PluginConfig.miscVanillaWeaponCycle;
+            if(wc != wcArray[1])
+            {
+                wcArray[0] = wcArray[1];
+                wcArray[1] = wc;
+            }
+            return;
+        }
         for (int i = 0; i < PluginConfig.weaponCycles.Length; i++)
         {
             WeaponCycle wc = PluginConfig.weaponCycles[i];
@@ -434,8 +509,62 @@ public class Plugin : BaseUnityPlugin
             }
         }
     }
+    public void SpecificCycleWeaponLogic()
+    {
+        for(int i = 0; i < 5; i++)
+        {
+            for(int j = 0; j < 5; j++)
+            {
+                if(Input.GetKeyDown(PluginConfig.vanillaWeaponCycles[i].weaponVariantBinds[j]))
+                {
+                    WeaponCycle wc = PluginConfig.vanillaWeaponCycles[i];
+                    if(wc != wcArray[1])
+                    {
+                        wcArray[0] = wcArray[1];
+                        wcArray[1] = wc;
+                    }
 
-    public void InputLogic()
+                    wc.currentIndex = j;
+
+                    for (int k = 0; k < wc.weaponEnums.Length; k++)
+                    {
+                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None || wc.ignoreInCycle[wc.currentIndex] == true) {wc.currentIndex += 1;}
+                        if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+                    }
+                    int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+                    newSlot = arr[0]; newVariation = arr[1];
+                }
+            }
+        }
+        for(int i = 0; i < 99; i++)
+        {
+            if(PluginConfig.weaponCycles[i].weaponVariantBinds[0] == KeyCode.None) {break;}
+            for(int j = 0; j < 99; j++)
+            {
+                if(PluginConfig.weaponCycles[i].weaponVariantBinds[j] == KeyCode.None) {break;}
+                if(Input.GetKeyDown(PluginConfig.weaponCycles[i].weaponVariantBinds[j]))
+                {
+                    WeaponCycle wc = PluginConfig.weaponCycles[i];
+                    if(wc != wcArray[1])
+                    {
+                        wcArray[0] = wcArray[1];
+                        wcArray[1] = wc;
+                    }
+
+                    wc.currentIndex = j;
+
+                    for (int k = 0; k < wc.weaponEnums.Length; k++)
+                    {
+                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None || wc.ignoreInCycle[wc.currentIndex] == true) {wc.currentIndex += 1;}
+                        if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
+                    }
+                    int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
+                    newSlot = arr[0]; newVariation = arr[1];
+                }
+            }
+        }
+    }
+    public void InputLogicMAIN()
     {
         newSlot = -1;
         newVariation = -1;
@@ -446,10 +575,11 @@ public class Plugin : BaseUnityPlugin
         AlterWeaponLogic();
         LastWeaponLogic();
         SwitchWeaponLogic();
+        SpecificCycleWeaponLogic();
 
         if(newVariation > 100 || newSlot > 100)
         {
-            Debug.Log("WeaponVariantBinds - Tried to switch to an empty weapon.");
+            Logger.LogWarning("Tried to switch to an empty weapon.");
         }
         else if(newVariation != -1 && newSlot != -1)
         {
@@ -459,35 +589,20 @@ public class Plugin : BaseUnityPlugin
             else if(newSlot == 3) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot4[newVariation], true);}
             else if(newSlot == 4) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot5[newVariation], true);}
             weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
+                
+            DualWield[] dualwields = MonoSingleton<GunControl>.Instance.GetComponentsInChildren<DualWield>();
+            for(int i = 0; i < dualwields.Length; i++)
+            {
+                //dualwields[i].currentWeapon = weapon;
+                dualwields[i].UpdateWeapon(weapon);
+                //logger.LogInfo(i + " " + dualwields[i].currentWeapon);
+            }
             return;
         }
         if(weapon != MonoSingleton<GunControl>.Instance.currentWeapon) //if a weapon slot change not made by us is detected
         {
-            Debug.Log("WeaponVariantBinds - Unaccounted weapon change detected.");
+            Logger.LogWarning("Unaccounted weapon change detected.");
             weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
-            //this should never be ran
-            /*PluginConfig.DetermineVanillaWeaponCycles();
-            GameObject oldWeapon = weapon;
-            WeaponCycle wcEmpty = new WeaponCycle();
-            PluginConfig.WeaponEnum[] emptyWeaponEnums = {PluginConfig.WeaponEnum.None, PluginConfig.WeaponEnum.None, PluginConfig.WeaponEnum.None};
-            wcEmpty.weaponEnums = emptyWeaponEnums;
-            wcEmpty.useCode = KeyCode.None;
-            wcArray[1] = wcEmpty; //overriden later, hopefully
-            int currentSlot = MonoSingleton<GunControl>.Instance.currentSlotIndex;
-            int currentVariation = MonoSingleton<GunControl>.Instance.currentVariationIndex;
-            PluginConfig.WeaponEnum currentWeaponEnum = PluginConfig.convertWeaponToWeaponEnum(weapon);
-
-            //alters vanilla behavior probably, but so be it.
-            bool variationMemory = false;
-            wcArray[0] = wcArray[1];
-            if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("variationMemory")) {variationMemory = (bool)MonoSingleton<PrefsManager>.Instance.prefMap["variationMemory"];}
-            MonoSingleton<GunControl>.Instance.currentVariationIndex = 0;
-            if     (currentSlot == 1 && variationMemory == false) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot1[0], true);}
-            else if(currentSlot == 2 && variationMemory == false) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot2[0], true);}
-            else if(currentSlot == 3 && variationMemory == false) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot3[0], true);}
-            else if(currentSlot == 4 && variationMemory == false) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot4[0], true);}
-            else if(currentSlot == 5 && variationMemory == false) {MonoSingleton<GunControl>.Instance.ForceWeapon(MonoSingleton<GunControl>.Instance.slot5[0], true);}
-            //endFindWeapon:;*/
         }
     }
 
@@ -500,12 +615,12 @@ public class Plugin : BaseUnityPlugin
         {
             PluginConfig.UpdateSettings();
         }
-        if(tickCount > tickCountUpdateVanillaWeaponCycles + 100)
+        if(tickCount > tickCountUpdateVanillaWeaponCycles + 100) //this is bad
         {
-            PluginConfig.DetermineVanillaWeaponCycles(); //this is bad
+            PluginConfig.DetermineVanillaWeaponCycles();
             tickCountUpdateVanillaWeaponCycles = tickCount;
         }
         if(!IsGameplayScene() || !modEnabled || IsMenu()) {return;}
-        InputLogic();
+        InputLogicMAIN();
     }
 }

@@ -1,17 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using JetBrains.Annotations;
 using PluginConfig.API;
 using PluginConfig.API.Decorators;
 using PluginConfig.API.Fields;
-using PluginConfig.API.Functionals;
 using UnityEngine;
-using UnityEngine.Animations;
-using UnityEngine.InputSystem.Interactions;
-using UnityEngine.UIElements;
 
 namespace WeaponVariantBinds;
 
@@ -21,11 +14,13 @@ public class WeaponCycle
 {   
     //enabled field used to be here but pointless because you can just set the use code to none
     public PluginConfig.WeaponEnum[] weaponEnums = new PluginConfig.WeaponEnum[100];
+    public KeyCode[] weaponVariantBinds = new KeyCode[100];
     public bool[] ignoreInCycle = new bool[100];
     public int currentIndex = 0;
     public KeyCode useCode = KeyCode.None;
     public bool rememberVariation = false;
     public SwapBehaviorEnum swapBehavior = SwapBehaviorEnum.NextVariation;
+    public bool skipOverThisCycle = false;
     public WeaponCycle() {}
 }
 
@@ -394,17 +389,20 @@ public class PluginConfig
 		field.SetEnumDisplayName(KeyEnum.Mouse7, "Mouse 7");
 	}
     public static string DefaultParentFolder = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}";
-    public static WeaponCycle[] weaponCycles = new WeaponCycle[100];
+    public static WeaponCycle[] weaponCycles = new WeaponCycle[100]; //0 indexed
     public static WeaponCycle[] vanillaWeaponCycles = new WeaponCycle[5]; //0 indexed
+    public static WeaponCycle miscVanillaWeaponCycle = new WeaponCycle();
     public static void InitVanillaWeaponCycles()
     {
         for(int i = 0; i < 5; i++)
         {
             WeaponCycle wc = new WeaponCycle();
-            wc.weaponEnums = new PluginConfig.WeaponEnum[100];
+            wc.weaponEnums = new WeaponEnum[100];
+            wc.weaponVariantBinds = new KeyCode[100];
             for(int j = 0; j < 100; j++)
             {
-                wc.weaponEnums[i] = WeaponEnum.None;
+                wc.weaponEnums[j] = WeaponEnum.None;
+                wc.weaponVariantBinds[j] = KeyCode.None;
             }
             wc.currentIndex = 0;
             wc.useCode = KeyCode.None;
@@ -412,6 +410,20 @@ public class PluginConfig
             wc.swapBehavior = SwapBehaviorEnum.NextVariation;
             vanillaWeaponCycles[i] = wc;
         }
+
+        WeaponCycle wc2 = new WeaponCycle();
+        wc2.weaponEnums = new WeaponEnum[100];
+        wc2.weaponVariantBinds = new KeyCode[100];
+        for(int j = 0; j < 100; j++)
+        {
+            wc2.weaponEnums[j] = WeaponEnum.None;
+            wc2.weaponVariantBinds[j] = KeyCode.None;
+        }
+        wc2.currentIndex = 0;
+        wc2.useCode = KeyCode.None;
+        wc2.rememberVariation = false; 
+        wc2.swapBehavior = SwapBehaviorEnum.NextVariation;
+        miscVanillaWeaponCycle = wc2;
     }
     public static void DetermineVanillaWeaponCycles()
     {   
@@ -447,240 +459,51 @@ public class PluginConfig
         }
     }
 
-    public static EnumField<WeaponEnum>[,] allWeaponFields = new EnumField<WeaponEnum>[100, 100]; //these are 1-indexed, 0 is empty.
-    public static BoolField[,] weaponSkipCycleFields = new BoolField[100, 100]; //1 indexed
-    public static EnumField<SwapBehaviorEnum>[] swapBehaviorFields = new EnumField<SwapBehaviorEnum>[100];
-    public static ConfigPanel[] configPanels = new ConfigPanel[100]; //1 indexed
-    public static ConfigPanel[] advancedWeaponOptionsFields = new ConfigPanel[100]; //1 indexed
 
-    //this isnt super efficent 
-    public static void UpdateSettings() //this is required because of jank with OnValueChange
+    public static EnumField<KeyEnum>[] weaponVariantBindFields = new EnumField<KeyEnum>[100];
+
+    public static ConfigPanel[] advancedWeaponOptionsFields = new ConfigPanel[100]; //1 indexed
+    public static ConfigPanel[] configPanels = new ConfigPanel[100]; //1 indexed
+
+    public static EnumField<KeyEnum>[] useKeyFields = new EnumField<KeyEnum>[100];
+    public static EnumField<WeaponEnum>[,] allWeaponFields = new EnumField<WeaponEnum>[100, 100]; //these are 1-indexed, 0 is empty.
+    public static EnumField<WeaponEnum>[,] vanillaWeaponFields = new EnumField<WeaponEnum>[5, 3];
+
+    public static EnumField<KeyEnum>[,] allWeaponBindFields = new EnumField<KeyEnum>[100, 100];
+    public static EnumField<KeyEnum>[,] allVanillaWeaponBindFields = new EnumField<KeyEnum>[5, 3];
+
+    public static BoolField[,] weaponSkipCycleFields = new BoolField[100, 100]; //1 indexed
+    public static BoolField[,] vanillaWeaponSkipCycleFields = new BoolField[5, 3];
+
+    public static EnumField<SwapBehaviorEnum>[] swapBehaviorFields = new EnumField<SwapBehaviorEnum>[100];
+    public static EnumField<SwapBehaviorEnum>[] vanillaSwapBehaviorFields = new EnumField<SwapBehaviorEnum>[5];
+
+    public static BoolField[] rememberVariationFields = new BoolField[100];
+    public static BoolField[] rememberVanillaVariationFields = new BoolField[5];
+
+    public static BoolField[] vanillaSkipOverCycleFields = new BoolField[5];
+    public static BoolField[] skipOverCycleFields = new BoolField[100];
+
+
+    public static void updateSpecificWeaponBinds()
     {
-        updateVariantBinds();
-        updateRememberVariation();
-        updateSkipCycles();
-        UpdateUseKeySettings();
-        updateSwapBehavior();
-        //adds to weaponCycle if needed
-        for(int i = 1; i < 100; i++) 
+        for(int i = 0; i < 5; i++)
         {
-            configPanels[i].interactable = true;
-            if(allWeaponFields[i, 1] == null || allWeaponFields[i, 1].value == WeaponEnum.None)
+            for (int j = 0; j < 3; j++)
             {
-                break;
-            }
-            bool WeaponEnumNoneFound = false;
-            //weaponCycles[i - 1].weaponEnums[0] = WeaponEnum.None; //this
-            for(int j = 1; j < 100; j++)
-            {
-                if(allWeaponFields[i, j] != null)
-                {
-                    weaponCycles[i - 1].weaponEnums[j - 1] = allWeaponFields[i,j].value;
-                    allWeaponFields[i, j].interactable = true;
-                    weaponSkipCycleFields[i, j].interactable = true;
-                    if(allWeaponFields[i, j].value == WeaponEnum.None){WeaponEnumNoneFound = true;}
-                }
-                else 
-                {
-                    WeaponCycle weaponCycle = weaponCycles[i - 1];
-                    //prevent accessing array with j = 100
-                    if(j < 99 && WeaponEnumNoneFound == false && allWeaponFields[i, j] == null && allWeaponFields[i, j + 1] == null) {CreateWeaponField(configPanels[i], weaponCycle, i, j); goto end; }
-                    break;
-                }
+                vanillaWeaponCycles[i].weaponVariantBinds[j] = convertKeyEnumToKeyCode(allVanillaWeaponBindFields[i,j].value);
             }
         }
-        end:;
-        //uninteractables extraneous items from any weaponCycle
         for(int i = 1; i < 100; i++)
         {
-            if(allWeaponFields[i, 1] == null)
-            {
-                break;
-            }
-            int numEnumNone = 0;
+            if(allWeaponBindFields[i, 1] == null) {break;}
             for(int j = 1; j < 100; j++)
             {
-                if(allWeaponFields[i, j] != null)
-                {
-                    bool weaponAfterNone = false;
-                    
-                    if(allWeaponFields[i, j].value == WeaponEnum.None)
-                    {
-                        numEnumNone += 1;
-                    }
-                    else if(numEnumNone > 0) {weaponAfterNone = true; numEnumNone += 1;}
-                    if(weaponAfterNone)
-                    {
-                        allWeaponFields[i, j].value = WeaponEnum.None; //done to prevent players from creating a long list of enums then setting one to none, which would mess up the cycle next reboot
-                    }
-                    if(numEnumNone > 1)
-                    {
-                        weaponSkipCycleFields[i, j].interactable = false;
-                        allWeaponFields[i, j].interactable = false;
-                    }
-                }
+                if(allWeaponBindFields[i, j] != null) {weaponCycles[i - 1].weaponVariantBinds[j - 1] = convertKeyEnumToKeyCode(allWeaponBindFields[i, j].value);}
                 else {break;}
             }
         }
-        //adds a weapon cycle if needed
-        bool emptyWeaponCycleExists = true;
-        for (int j = 1; j < 100; j++)
-        {
-            if(allWeaponFields[numWeaponCyclesActive, j] != null)
-            {
-                if(allWeaponFields[numWeaponCyclesActive, j].value != WeaponEnum.None)
-                {
-                    emptyWeaponCycleExists = false;
-                    break;
-                }
-            }
-        }
-        if(emptyWeaponCycleExists == false)
-        {
-            CreateWeaponCyclePanel(numWeaponCyclesActive + 1);
-        }
-        //uninteractables extraneous weapon cycles if needed
-        int numEmptyWeaponCycles = 0;
-        for(int i = 1; i < 100; i++)
-        {
-            if(allWeaponFields[i, 1] == null)
-            {
-                break;
-            }
-            bool emptyWeaponCycle = false;
-            for(int j = 1; j < 100; j++)
-            {
-                if(allWeaponFields[i, j] != null)
-                {
-                    emptyWeaponCycle = true;
-                    if(allWeaponFields[i, j].value != WeaponEnum.None)
-                    {
-                        emptyWeaponCycle = false;
-                        break;
-                    }
-                }
-            }
-            if(emptyWeaponCycle) {numEmptyWeaponCycles += 1;}
-            if(numEmptyWeaponCycles > 0)
-            {
-                if(i < numWeaponCyclesActive) {HideWeaponCyclePanel(i + 1);}
-            }
-        }
     }
-
-    public static void StartSettingsUpdate()
-    {
-        tickUpdateSettings = Plugin.tickCount; //sets countdown to updatesettings
-    }
-
-    public static int tickUpdateSettings = 0;
-    public static int numWeaponCyclesActive = 0;
-    public static EnumField<KeyEnum>[] useKeyFields = new EnumField<KeyEnum>[100];
-    public static void UpdateUseKeySettings()
-    {
-        for(int i = 1; i < 100; i++)
-        {
-            if(useKeyFields[i] != null)
-            {
-                WeaponCycle wc = weaponCycles[i - 1];
-                wc.useCode = convertKeyEnumToKeyCode(useKeyFields[i].value);
-            }
-            else {break;}
-        }
-    }
-    public static ConfigPanel CreateWeaponCyclePanel(int i)
-    {
-        weaponCycles[i - 1] = new WeaponCycle();
-        WeaponCycle weaponCycle = weaponCycles[i - 1];
-        weaponCycle.ignoreInCycle = new bool[100];
-        numWeaponCyclesActive += 1;
-        for(int j = 0; j < weaponCycle.weaponEnums.Length; j++)
-        {
-            weaponCycle.weaponEnums[j] = WeaponEnum.None;
-        }
-
-        ConfigPanel newWeaponCyclePanel = new ConfigPanel(division, "Weapon Cycle " + i, "customWeaponCyclePanel" + i);
-        configPanels[i] = newWeaponCyclePanel;
-        if(i % 2 == 1) {newWeaponCyclePanel.fieldColor = new Color(0.06f, 0.06f, 0.06f);}
-
-        ConfigHeader inputHeader = new ConfigHeader(newWeaponCyclePanel, "Only the first weapon with this bind in the panel will be switched to. Default weapon binds will also be used before this.");
-        inputHeader.textSize = 12;
-        EnumField<KeyEnum> useKeyField = new EnumField<KeyEnum>(newWeaponCyclePanel, "Weapon Cycle Key", "customWeaponCycleKey" + i, KeyEnum.None);
-        useKeyField.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {StartSettingsUpdate();};
-        weaponCycle.useCode = convertKeyEnumToKeyCode(useKeyField.value);
-        SetDisplayNames(useKeyField);
-        useKeyFields[i] = useKeyField;
-
-        BoolField rememberCycleVariationField = new BoolField(newWeaponCyclePanel, "Remember Cycle Variation", "rememberCycleVariation" + i, false);
-        rememberCycleVariationField.onValueChange += (BoolField.BoolValueChangeEvent e) => {StartSettingsUpdate();};
-        weaponCycle.rememberVariation = rememberCycleVariationField.value;
-        rememberVariationFields[i] = rememberCycleVariationField;
-
-        EnumField<SwapBehaviorEnum> swapBehaviorField = new EnumField<SwapBehaviorEnum>(newWeaponCyclePanel, "On Swap to Already Drawn Weapon", "swapBehavior" + i, SwapBehaviorEnum.NextVariation);
-        swapBehaviorField.onValueChange += (EnumField<SwapBehaviorEnum>.EnumValueChangeEvent e) => {StartSettingsUpdate();};
-        weaponCycle.swapBehavior = swapBehaviorField.value;
-        swapBehaviorField.SetEnumDisplayName(SwapBehaviorEnum.FirstVariation, "First Variation");
-        swapBehaviorField.SetEnumDisplayName(SwapBehaviorEnum.NextVariation, "Next Variation");
-        swapBehaviorField.SetEnumDisplayName(SwapBehaviorEnum.SameVariation, "Same Variation");
-        swapBehaviorFields[i] = swapBehaviorField;
-
-        ConfigPanel advancedWeaponOptionsField = new ConfigPanel(newWeaponCyclePanel, "Advanced Options", "advancedVanillaWeaponOptionsField" + i);
-        ConfigHeader infoHeader = new ConfigHeader(advancedWeaponOptionsField, "Ignored weapons in cycle can only be switched to using specific variant binds.");
-        infoHeader.textSize = 12;
-
-        advancedWeaponOptionsFields[i] = advancedWeaponOptionsField;
-
-        ConfigHeader customWeaponCycleWeaponsHeader = new ConfigHeader(newWeaponCyclePanel, "Weapons");
-
-        for(int j = 1; j < 100; j++)
-        {
-            if(CreateWeaponField(newWeaponCyclePanel, weaponCycle, i, j).value == WeaponEnum.None) {break;}
-        }
-        return newWeaponCyclePanel;
-    }
-    public static void HideWeaponCyclePanel(int i)
-    {
-        configPanels[i].interactable = false;
-        for(int j = 1; j < 100; j++)
-        {
-            if(allWeaponFields[i, j] != null)
-            {
-                allWeaponFields[i, j].value = WeaponEnum.None;
-            }
-            else {return;}
-        }
-    }
-    public static EnumField<WeaponEnum> CreateWeaponField(ConfigPanel newWeaponCyclePanel, WeaponCycle weaponCycle, int i, int j)
-    {
-        EnumField<WeaponEnum> weaponField = new EnumField<WeaponEnum>(newWeaponCyclePanel, "Weapon " + j, "customWeaponCycle" + i + "weapon" + j, WeaponEnum.None);
-        allWeaponFields[i,j] = weaponField;
-        weaponField.onValueChange += (EnumField<WeaponEnum>.EnumValueChangeEvent e) => {StartSettingsUpdate();};
-
-        weaponCycle.weaponEnums[j - 1] = weaponField.value;
-        setWeaponEnumDisplayNames(weaponField);
-        if(j % 2 == 0) {weaponField.fieldColor = new Color(0.06f,0.06f,0.06f);}
-
-        ConfigPanel advancedWeaponOptionsField = advancedWeaponOptionsFields[i];
-        BoolField ignoreWeaponInCycleField = new BoolField(advancedWeaponOptionsField, "Ignore Weapon " + j + " in cycle", "ignoreWeaponInCycle" + i + "_" +  j, false);
-        ignoreWeaponInCycleField.onValueChange += (BoolField.BoolValueChangeEvent e) => {StartSettingsUpdate();};
-        weaponCycles[i - 1].ignoreInCycle[j] = ignoreWeaponInCycleField.value;
-        weaponSkipCycleFields[i, j] = ignoreWeaponInCycleField;
-
-        return weaponField;
-    }
-    public static void HideWeaponField(int i, int j)
-    {
-        allWeaponFields[i, j].interactable = false;
-        weaponSkipCycleFields[i, j].interactable = false;
-    }
-
-    public static ConfigDivision division = null;
-    public static EnumField<WeaponEnum>[,] vanillaWeaponFields = new EnumField<WeaponEnum>[5, 3];
-    public static BoolField[,] vanillaWeaponSkipCycleFields = new BoolField[5, 3];
-    public static EnumField<KeyEnum>[] weaponVariantBindFields = new EnumField<KeyEnum>[100];
-    public static EnumField<SwapBehaviorEnum>[] vanillaSwapBehaviorFields = new EnumField<SwapBehaviorEnum>[5];
-    public static BoolField[] rememberVariationFields = new BoolField[100];
-    public static BoolField[] rememberVanillaVariationFields = new BoolField[5];
     public static void updateVariantBinds()
     {
         for(int i = 3; i < 100; i++)
@@ -740,6 +563,258 @@ public class PluginConfig
             else {break;}
         }
     }
+    public static void updateSkipOverCycles()
+    {
+        for(int i = 0; i < 5; i++)
+        {
+            vanillaWeaponCycles[i].skipOverThisCycle = vanillaSkipOverCycleFields[i].value;
+        }
+        for(int i = 1; i < 100; i++)
+        {
+            if(weaponCycles[i - 1].weaponEnums[0] == WeaponEnum.None) {break;}
+            weaponCycles[i - 1].skipOverThisCycle = skipOverCycleFields[i].value;
+        }
+    }
+    public static void updateUseKeySettings()
+    {
+        for(int i = 1; i < 100; i++)
+        {
+            if(useKeyFields[i] != null)
+            {
+                WeaponCycle wc = weaponCycles[i - 1];
+                wc.useCode = convertKeyEnumToKeyCode(useKeyFields[i].value);
+            }
+            else {break;}
+        }
+    }
+
+    //this isnt super efficent 
+    public static void UpdateSettings() //this is required because of jank with OnValueChange
+    {
+        updateVariantBinds();
+        updateRememberVariation();
+        updateSkipCycles();
+        updateUseKeySettings();
+        updateSwapBehavior();
+        updateSkipOverCycles();
+        updateSpecificWeaponBinds();
+        //adds to weaponCycle if needed
+        for(int i = 1; i < 100; i++) 
+        {
+            configPanels[i].interactable = true;
+            if(allWeaponFields[i, 1] == null || allWeaponFields[i, 1].value == WeaponEnum.None)
+            {
+                break;
+            }
+            bool WeaponEnumNoneFound = false;
+            //weaponCycles[i - 1].weaponEnums[0] = WeaponEnum.None; //this
+            for(int j = 1; j < 100; j++)
+            {
+                if(allWeaponFields[i, j] != null)
+                {
+                    weaponCycles[i - 1].weaponEnums[j - 1] = allWeaponFields[i,j].value;
+                    allWeaponFields[i, j].interactable = true;
+                    weaponSkipCycleFields[i, j].interactable = true;
+                    allWeaponBindFields[i, j].interactable = true;
+                    if(allWeaponFields[i, j].value == WeaponEnum.None){WeaponEnumNoneFound = true;}
+                }
+                else 
+                {
+                    WeaponCycle weaponCycle = weaponCycles[i - 1];
+                    //prevent accessing array with j = 100
+                    if(j < 99 && WeaponEnumNoneFound == false && allWeaponFields[i, j] == null && allWeaponFields[i, j + 1] == null) {CreateWeaponField(configPanels[i], weaponCycle, i, j); goto end; }
+                    break;
+                }
+            }
+        }
+        end:;
+        //uninteractables extraneous items from any weaponCycle
+        for(int i = 1; i < 100; i++)
+        {
+            if(allWeaponFields[i, 1] == null)
+            {
+                break;
+            }
+            int numEnumNone = 0;
+            for(int j = 1; j < 100; j++)
+            {
+                if(allWeaponFields[i, j] != null)
+                {
+                    bool weaponAfterNone = false;
+                    
+                    if(allWeaponFields[i, j].value == WeaponEnum.None)
+                    {
+                        numEnumNone += 1;
+                    }
+                    else if(numEnumNone > 0) {weaponAfterNone = true; numEnumNone += 1;}
+                    if(weaponAfterNone)
+                    {
+                        allWeaponFields[i, j].value = WeaponEnum.None; //done to prevent players from creating a long list of enums then setting one to none, which would mess up the cycle next reboot
+                        allWeaponBindFields[i, j].value = KeyEnum.None;
+                        weaponSkipCycleFields[i, j].value = false;
+                    }
+                    if(numEnumNone > 1)
+                    {
+                        weaponSkipCycleFields[i, j].interactable = false;
+                        allWeaponFields[i, j].interactable = false;
+                    }
+                }
+                else {break;}
+            }
+        }
+        //adds a weapon cycle if needed
+        bool emptyWeaponCycleExists = true;
+        for (int j = 1; j < 100; j++)
+        {
+            if(allWeaponFields[numWeaponCyclesActive, j] != null)
+            {
+                if(allWeaponFields[numWeaponCyclesActive, j].value != WeaponEnum.None)
+                {
+                    emptyWeaponCycleExists = false;
+                    break;
+                }
+            }
+        }
+        if(emptyWeaponCycleExists == false)
+        {
+            CreateWeaponCyclePanel(numWeaponCyclesActive + 1);
+        }
+        //uninteractables extraneous weapon cycles if needed
+        int numEmptyWeaponCycles = 0;
+        for(int i = 1; i < 100; i++)
+        {
+            if(allWeaponFields[i, 1] == null)
+            {
+                break;
+            }
+            bool emptyWeaponCycle = false;
+            for(int j = 1; j < 100; j++)
+            {
+                if(allWeaponFields[i, j] != null)
+                {
+                    emptyWeaponCycle = true;
+                    if(allWeaponFields[i, j].value != WeaponEnum.None)
+                    {
+                        emptyWeaponCycle = false;
+                        break;
+                    }
+                }
+            }
+            if(emptyWeaponCycle) {numEmptyWeaponCycles += 1;}
+            if(numEmptyWeaponCycles > 0)
+            {
+                if(i < numWeaponCyclesActive) {HideWeaponCyclePanel(i + 1);}
+            }
+        }
+    }
+    public static void StartSettingsUpdate()
+    {
+        tickUpdateSettings = Plugin.tickCount; //sets countdown to updatesettings
+    }
+
+    public static int tickUpdateSettings = 0;
+    public static int numWeaponCyclesActive = 0;
+    public static ConfigPanel CreateWeaponCyclePanel(int i)
+    {
+        weaponCycles[i - 1] = new WeaponCycle();
+        WeaponCycle weaponCycle = weaponCycles[i - 1];
+        weaponCycle.ignoreInCycle = new bool[100];
+        numWeaponCyclesActive += 1;
+        for(int j = 0; j < weaponCycle.weaponEnums.Length; j++)
+        {
+            weaponCycle.weaponEnums[j] = WeaponEnum.None;
+        }
+
+        ConfigPanel newWeaponCyclePanel = new ConfigPanel(division, "Weapon Cycle " + i, "customWeaponCyclePanel" + i);
+        configPanels[i] = newWeaponCyclePanel;
+        if(i % 2 == 1) {newWeaponCyclePanel.fieldColor = new Color(0.06f, 0.06f, 0.06f);}
+
+        ConfigHeader inputHeader = new ConfigHeader(newWeaponCyclePanel, "Only the first weapon with this bind in the panel will be switched to. Default weapon binds will also be used before this.");
+        inputHeader.textSize = 12;
+        EnumField<KeyEnum> useKeyField = new EnumField<KeyEnum>(newWeaponCyclePanel, "Weapon Cycle Key", "customWeaponCycleKey" + i, KeyEnum.None);
+        useKeyField.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {StartSettingsUpdate();};
+        weaponCycle.useCode = convertKeyEnumToKeyCode(useKeyField.value);
+        SetDisplayNames(useKeyField);
+        useKeyFields[i] = useKeyField;
+
+        BoolField rememberCycleVariationField = new BoolField(newWeaponCyclePanel, "Remember Cycle Variation", "rememberCycleVariation" + i, false);
+        rememberCycleVariationField.onValueChange += (BoolField.BoolValueChangeEvent e) => {StartSettingsUpdate();};
+        weaponCycle.rememberVariation = rememberCycleVariationField.value;
+        rememberVariationFields[i] = rememberCycleVariationField;
+
+        EnumField<SwapBehaviorEnum> swapBehaviorField = new EnumField<SwapBehaviorEnum>(newWeaponCyclePanel, "On Swap to Already Drawn Weapon", "swapBehavior" + i, SwapBehaviorEnum.NextVariation);
+        swapBehaviorField.onValueChange += (EnumField<SwapBehaviorEnum>.EnumValueChangeEvent e) => {StartSettingsUpdate();};
+        weaponCycle.swapBehavior = swapBehaviorField.value;
+        swapBehaviorField.SetEnumDisplayName(SwapBehaviorEnum.FirstVariation, "First Variation");
+        swapBehaviorField.SetEnumDisplayName(SwapBehaviorEnum.NextVariation, "Next Variation");
+        swapBehaviorField.SetEnumDisplayName(SwapBehaviorEnum.SameVariation, "Same Variation");
+        swapBehaviorFields[i] = swapBehaviorField;
+
+        ConfigPanel advancedWeaponOptionsField = new ConfigPanel(newWeaponCyclePanel, "Advanced Options", "advancedVanillaWeaponOptionsField" + i);
+        ConfigHeader infoHeader = new ConfigHeader(advancedWeaponOptionsField, "Ignored weapons in cycle can only be switched to using specific variant binds.");
+        infoHeader.textSize = 12;
+
+        advancedWeaponOptionsFields[i] = advancedWeaponOptionsField;
+
+        BoolField skipOverWeaponCycleField = new BoolField(advancedWeaponOptionsField, "Slot Alter - Skip Over Cycle", "skipOverWeaponCycle" + i, false);
+        skipOverWeaponCycleField.onValueChange += (BoolField.BoolValueChangeEvent e) => {StartSettingsUpdate();};
+        skipOverCycleFields[i] = skipOverWeaponCycleField;
+
+        ConfigHeader customWeaponCycleWeaponsHeader = new ConfigHeader(newWeaponCyclePanel, "Weapons");
+
+        for(int j = 1; j < 100; j++)
+        {
+            if(CreateWeaponField(newWeaponCyclePanel, weaponCycle, i, j).value == WeaponEnum.None) {break;}
+        }
+        return newWeaponCyclePanel;
+    }
+    public static void HideWeaponCyclePanel(int i)
+    {
+        configPanels[i].interactable = false;
+        for(int j = 1; j < 100; j++)
+        {
+            if(allWeaponFields[i, j] != null)
+            {
+                allWeaponFields[i, j].value = WeaponEnum.None;
+                allWeaponBindFields[i, j].value = KeyEnum.None;
+                weaponSkipCycleFields[i, j].value = false;
+                weaponCycles[i - 1].weaponEnums[j - 1] = WeaponEnum.None; //clears the i'th weapon cycle
+            }
+            else {return;}
+        }
+    }
+    public static EnumField<WeaponEnum> CreateWeaponField(ConfigPanel newWeaponCyclePanel, WeaponCycle weaponCycle, int i, int j)
+    {
+        EnumField<WeaponEnum> weaponField = new EnumField<WeaponEnum>(newWeaponCyclePanel, "Weapon " + j, "customWeaponCycle" + i + "weapon" + j, WeaponEnum.None);
+        allWeaponFields[i,j] = weaponField;
+        weaponField.onValueChange += (EnumField<WeaponEnum>.EnumValueChangeEvent e) => {StartSettingsUpdate();};
+
+        weaponCycle.weaponEnums[j - 1] = weaponField.value;
+        setWeaponEnumDisplayNames(weaponField);
+        if(j % 2 == 0) {weaponField.fieldColor = new Color(0.06f,0.06f,0.06f);}
+
+        ConfigPanel advancedWeaponOptionsField = advancedWeaponOptionsFields[i];
+        BoolField ignoreWeaponInCycleField = new BoolField(advancedWeaponOptionsField, "Ignore Weapon " + j + " in cycle", "ignoreWeaponInCycle" + i + "_" +  j, false);
+        ignoreWeaponInCycleField.onValueChange += (BoolField.BoolValueChangeEvent e) => {StartSettingsUpdate();};
+        weaponCycles[i - 1].ignoreInCycle[j] = ignoreWeaponInCycleField.value;
+        weaponSkipCycleFields[i, j] = ignoreWeaponInCycleField;
+
+        EnumField<KeyEnum> variantBindField = new EnumField<KeyEnum>(advancedWeaponOptionsField, "Weapon " + j + " Bind", "cycleVariantBind" + i + "_" + j, KeyEnum.None);
+        variantBindField.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {StartSettingsUpdate();};
+        vanillaWeaponCycles[i].weaponVariantBinds[j] = convertKeyEnumToKeyCode(variantBindField.value);
+        allWeaponBindFields[i, j] = variantBindField;
+        SetDisplayNames(variantBindField);
+
+        return weaponField;
+    }
+    public static void HideWeaponField(int i, int j)
+    {
+        allWeaponFields[i, j].interactable = false;
+        weaponSkipCycleFields[i, j].interactable = false;
+        allWeaponBindFields[i, j].interactable = false;
+    }
+
+    public static ConfigDivision division = null;
     public static void WeaponVariantBindsConfig()
     {
         var config = PluginConfigurator.Create("WeaponVariantBinds", "WeaponVariantBinds");
@@ -772,7 +847,6 @@ public class PluginConfig
         //+-----------------------+\\
         //vanilla weapon cycles are special custom weapon cycles that follow the vanilla weapon ordering
 
-        //not tested
         String[] names = {"Revolver", "Shotgun", "Nailgun", "Railcannon", "Rocket Launcher"};
         Color[] colors = {new Color(0.0f, 0.0f, 0.2f), new Color(0.2f, 0.0f, 0.0f), new Color(0.0f, 0.2f, 0.0f), new Color(0.10f, 0.00f, 0.10f), new Color(0.10f, 0.10f, 0.00f)};
         for(int i = 0; i < 5; i++)
@@ -803,6 +877,11 @@ public class PluginConfig
             ConfigHeader infoHeader = new ConfigHeader(advancedWeaponOptionsField, "Ignored weapons in cycle can only be switched to using specific variant binds.");
             infoHeader.textSize = 12;
 
+            BoolField skipOverWeaponCycleField = new BoolField(advancedWeaponOptionsField, "Slot Alter - Skip Over Cycle", "vanillaSkipOverWeaponCycle" + i, false);
+            skipOverWeaponCycleField.onValueChange += (BoolField.BoolValueChangeEvent e) => {StartSettingsUpdate();};
+            vanillaWeaponCycles[i].skipOverThisCycle = skipOverWeaponCycleField.value;
+            vanillaSkipOverCycleFields[i] = skipOverWeaponCycleField;
+
             ConfigHeader customWeaponCycleWeaponsHeader = new ConfigHeader(newWeaponCyclePanel, "Weapons");
 
             for(int j = 0; j < 3; j++)
@@ -818,6 +897,12 @@ public class PluginConfig
                 ignoreWeaponInCycleField.onValueChange += (BoolField.BoolValueChangeEvent e) => {StartSettingsUpdate();};
                 vanillaWeaponCycles[i].ignoreInCycle[j] = ignoreWeaponInCycleField.value;
                 vanillaWeaponSkipCycleFields[i, j] = ignoreWeaponInCycleField;
+
+                EnumField<KeyEnum> variantBindField = new EnumField<KeyEnum>(advancedWeaponOptionsField, "Weapon " + (j + 1) + " Bind", "vanillaCycleVariantBind" + i + "_" + j, KeyEnum.None);
+                variantBindField.onValueChange += (EnumField<KeyEnum>.EnumValueChangeEvent e) => {StartSettingsUpdate();};
+                vanillaWeaponCycles[i].weaponVariantBinds[j] = convertKeyEnumToKeyCode(variantBindField.value);
+                allVanillaWeaponBindFields[i, j] = variantBindField;
+                SetDisplayNames(variantBindField);
             }
         }
 
