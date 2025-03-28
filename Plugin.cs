@@ -299,13 +299,12 @@ public class Plugin : BaseUnityPlugin
     {
         //this is slighlty buggy because we aren't preventing base game scrolling, and my version and the game's version of scrolling definitions are slightly different
         WeaponCycle wc = wcArray[1];
-        //if(wc != null && wc.scrollThroughWeaponCycle == false) {return;}
         if(wcArray[1] != null) 
         {
-            if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollEnabled")) {scrollEnabled =   (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollEnabled"];}
-            if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollVariations")) {scrollVariation = (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollVariations"];}
-            if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollReversed")) {scrollReversed =  (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollReversed"];}
-            if(MonoSingleton<PrefsManager>.Instance.prefMap.ContainsKey("scrollWeapons")) {scrollWeapons =  (bool)MonoSingleton<PrefsManager>.Instance.prefMap["scrollWeapons"];}
+            scrollEnabled = MonoSingleton<PrefsManager>.Instance.GetBool("scrollEnabled");
+            scrollVariation = MonoSingleton<PrefsManager>.Instance.GetBool("scrollVariations");
+            scrollReversed = MonoSingleton<PrefsManager>.Instance.GetBool("scrollReversed");
+            scrollWeapons = MonoSingleton<PrefsManager>.Instance.GetBool("scrollWeapons");
 
             float mult = 1f;
             if(scrollReversed){mult = -1f;}
@@ -528,7 +527,7 @@ public class Plugin : BaseUnityPlugin
 
                     for (int k = 0; k < wc.weaponEnums.Length; k++)
                     {
-                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None || wc.ignoreInCycle[wc.currentIndex] == true) {wc.currentIndex += 1;}
                         if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
                     }
                     int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
@@ -555,7 +554,7 @@ public class Plugin : BaseUnityPlugin
 
                     for (int k = 0; k < wc.weaponEnums.Length; k++)
                     {
-                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
+                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None || wc.ignoreInCycle[wc.currentIndex] == true) {wc.currentIndex += 1;}
                         if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
                     }
                     int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
