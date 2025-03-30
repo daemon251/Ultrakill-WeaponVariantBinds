@@ -527,7 +527,7 @@ public class Plugin : BaseUnityPlugin
 
                     for (int k = 0; k < wc.weaponEnums.Length; k++)
                     {
-                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None || wc.ignoreInCycle[wc.currentIndex] == true) {wc.currentIndex += 1;}
+                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
                         if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
                     }
                     int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
@@ -554,7 +554,7 @@ public class Plugin : BaseUnityPlugin
 
                     for (int k = 0; k < wc.weaponEnums.Length; k++)
                     {
-                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None || wc.ignoreInCycle[wc.currentIndex] == true) {wc.currentIndex += 1;}
+                        if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None) {wc.currentIndex += 1;}
                         if(wc.currentIndex >= wc.weaponEnums.Length) {wc.currentIndex = 0;}
                     }
                     int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
