@@ -17,7 +17,8 @@
           "Assembly-CSharp": "0.0.0.0",
           "BepInEx": "5.4.21.0",
           "PluginConfigurator": "1.9.0.0",
-          "Unity.InputSystem": "1.7.0.0"
+          "Unity.InputSystem": "1.7.0.0",
+          "UnityEngine.UI": "1.0.0.0"
         },
         "runtime": {
           "WeaponVariantBinds.dll": {}

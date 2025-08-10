@@ -13,6 +13,7 @@ namespace WeaponVariantBinds;
 //delete all at once, bad?
 //weapon slot 6
 //dual wield
+//DetermineVanillaWeaponCycles(); //this also needs to be called on kit change
 
 [BepInPlugin("WeaponVariantBinds", "WeaponVariantBinds", "0.01")]
 public class Plugin : BaseUnityPlugin
@@ -24,11 +25,23 @@ public class Plugin : BaseUnityPlugin
     public static bool scrollReversed = false;
     public static bool scrollWeapons = false;
     public static ManualLogSource logger;
+
+    //works? untested
+    [HarmonyPatch(typeof(LeaderboardController), nameof(LeaderboardController.SubmitCyberGrindScore))]
+    [HarmonyPrefix]
+    public static bool no(LeaderboardController __instance) {return !(modEnabled && PluginConfig.actionSmootheningEnabled);}
+
+    [HarmonyPatch(typeof(LeaderboardController), nameof(LeaderboardController.SubmitLevelScore))]
+    [HarmonyPrefix]
+    public static bool nope(LeaderboardController __instance){return !(modEnabled && PluginConfig.actionSmootheningEnabled);}
+
+    [HarmonyPatch(typeof(LeaderboardController), nameof(LeaderboardController.SubmitFishSize))] //watch out guys, hes gonna catch a size 2 !!!!!
+    [HarmonyPrefix]
+    public static bool notevenfish(LeaderboardController __instance){return !(modEnabled && PluginConfig.actionSmootheningEnabled);}
+
     private void Awake()
     {
         logger = new ManualLogSource("WeaponVariantBinds"); BepInEx.Logging.Logger.Sources.Add(logger);
-        PluginConfig.InitVanillaWeaponCycles();
-        PluginConfig.WeaponVariantBindsConfig();
         wcArray[0] = PluginConfig.vanillaWeaponCycles[1];
         wcArray[1] = PluginConfig.vanillaWeaponCycles[0];
         Harmony harmony = new Harmony("WeaponVariantBinds");
@@ -51,11 +64,11 @@ public class Plugin : BaseUnityPlugin
         return true;
     }
 
-    WeaponCycle[] wcArray = new WeaponCycle[2]; //0 is last wc, 1 is new wc
+    public static WeaponCycle[] wcArray = new WeaponCycle[2]; //0 is last wc, 1 is new wc
 
-    int newSlot = -1;
-    int newVariation = -1;
-    public void IfSlotIsIgnoredLogic(bool goingToNext)
+    static int newSlot = -1;
+    static int newVariation = -1;
+    public static void IfSlotIsIgnoredLogic(bool goingToNext)
     {
         if(goingToNext == true) //go next
         {
@@ -122,7 +135,7 @@ public class Plugin : BaseUnityPlugin
             }
         }
     }
-    public void SwitchToNextCustomSlot() 
+    public static void SwitchToNextCustomSlot() 
     {
         WeaponCycle wcTemp = wcArray[1];
         int index1 = 0;
@@ -181,7 +194,7 @@ public class Plugin : BaseUnityPlugin
         int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
         newSlot = arr[0]; newVariation = arr[1];
     }
-    public void SwitchToPrevCustomSlot() 
+    public static void SwitchToPrevCustomSlot() 
     {
         WeaponCycle wcTemp = wcArray[1];
         int index1 = PluginConfig.numWeaponCyclesActive - 1;
@@ -240,7 +253,7 @@ public class Plugin : BaseUnityPlugin
         int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
         newSlot = arr[0]; newVariation = arr[1];
     }
-    public void VariationBindLogic()
+    public static void VariationBindLogic()
     {
         WeaponCycle wc = wcArray[1];
         //if(wc != null && wc.specificVariationThroughWeaponCycle == false) {return;}
@@ -295,7 +308,7 @@ public class Plugin : BaseUnityPlugin
             }
         }
     }
-    public void ScrollLogic() //bugs out if you do it too fast
+    public static void ScrollLogic() //bugs out if you do it too fast
     {
         //this is slighlty buggy because we aren't preventing base game scrolling, and my version and the game's version of scrolling definitions are slightly different
         WeaponCycle wc = wcArray[1];
@@ -365,7 +378,7 @@ public class Plugin : BaseUnityPlugin
             }
         }
     }
-    public void AlterVariationLogic()
+    public static void AlterVariationLogic()
     {
         WeaponCycle wc = wcArray[1];
         //if(wc != null && wc.swapThroughWeaponCycle == false) {return;}
@@ -393,7 +406,7 @@ public class Plugin : BaseUnityPlugin
             newSlot = arr[0]; newVariation = arr[1];
         }
     }
-    public void AlterWeaponLogic()
+    public static void AlterWeaponLogic()
     {
         if(MonoSingleton<InputManager>.Instance.InputSource.NextWeapon.WasCanceledThisFrame)
         {
@@ -405,7 +418,7 @@ public class Plugin : BaseUnityPlugin
             SwitchToPrevCustomSlot();
         }
     }
-    public void LastWeaponLogic()
+    public static void LastWeaponLogic()
     {
         if(wcArray[0] != null && MonoSingleton<InputManager>.Instance.InputSource.LastWeapon.WasCanceledThisFrame)
         {
@@ -418,7 +431,7 @@ public class Plugin : BaseUnityPlugin
             newSlot = arr[0]; newVariation = arr[1];
         }
     }
-    public void SwitchToWeapon(WeaponCycle wc)
+    public static void SwitchToWeapon(WeaponCycle wc)
     {
         bool resetWCIndex = true;
         bool newCycleBool = false;
@@ -456,7 +469,7 @@ public class Plugin : BaseUnityPlugin
         int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
         newSlot = arr[0]; newVariation = arr[1];
     }
-    public void SwitchWeaponLogic()
+    public static void SwitchWeaponLogic()
     {
         if(MonoSingleton<InputManager>.Instance.InputSource.Slot1.WasPerformedThisFrame)
         {
@@ -508,11 +521,11 @@ public class Plugin : BaseUnityPlugin
             }
         }
     }
-    public void SpecificCycleWeaponLogic()
+    public static void SpecificCycleWeaponLogic()
     {
         for(int i = 0; i < 5; i++)
         {
-            for(int j = 0; j < 5; j++)
+            for(int j = 0; j < 3; j++) //was 5?
             {
                 if(Input.GetKeyDown(PluginConfig.vanillaWeaponCycles[i].weaponVariantBinds[j]))
                 {
@@ -563,10 +576,18 @@ public class Plugin : BaseUnityPlugin
             }
         }
     }
-    public void InputLogicMAIN()
+    
+    public static WeaponCycle oldWCThisTick;
+    public static WeaponCycle newWCThisTick;
+    public static void InputLogicMAIN()
     {
+        if(MonoSingleton<NewMovement>.Instance.hp <= 0) {return;} //do nothing if player is dead, this matters in CG
         newSlot = -1;
         newVariation = -1;
+
+        oldWCThisTick = wcArray[0];
+        newWCThisTick = wcArray[1];
+        //if(ActionSmoothening.PreventWCOrderCyclingStartThisTick) {ActionSmoothening.wcOld = newWCThisTick;}
 
         VariationBindLogic();
         ScrollLogic();
@@ -578,7 +599,7 @@ public class Plugin : BaseUnityPlugin
 
         if(newVariation > 100 || newSlot > 100)
         {
-            Logger.LogWarning("Tried to switch to an empty weapon.");
+            logger.LogWarning("Tried to switch to an empty weapon.");
         }
         else if(newVariation != -1 && newSlot != -1)
         {
@@ -596,30 +617,46 @@ public class Plugin : BaseUnityPlugin
                 dualwields[i].UpdateWeapon(weapon);
                 //logger.LogInfo(i + " " + dualwields[i].currentWeapon);
             }
-            return;
         }
-        if(weapon != MonoSingleton<GunControl>.Instance.currentWeapon) //if a weapon slot change not made by us is detected
+        else if(weapon != MonoSingleton<GunControl>.Instance.currentWeapon) //if a weapon slot change not made by us is detected
         {
-            Logger.LogWarning("Unaccounted weapon change detected.");
+            logger.LogWarning("Unaccounted weapon change detected.");
             weapon = MonoSingleton<GunControl>.Instance.currentWeapon;
         }
-    }
 
-    public static int tickCount = 0;
-    public static int tickCountUpdateVanillaWeaponCycles = 0;
+        if(ActionSmoothening.PreventWCOrderCycling) 
+        {
+            //all we really want to know while waiting for weapon switch is what wc and index of wc we are going to without doing any of the switching logic, which my previous code does not accomodate for nicely. hence this idiocracy
+            //I believe this is still not perfect and I think perfection requires ANOTHER rewrite
+            wcArray[0] = oldWCThisTick; 
+            if(wcArray[1] != newWCThisTick) {ActionSmoothening.wcToSwitchTo = wcArray[1];} //the if check IS nessecary, not optimization
+            wcArray[1] = newWCThisTick; //do this in case user switches off current wc, then back to the original one while waiting, makes it so you go up one variation instead of back at the original (bad)
+        } 
+    }
+    public static bool VanillaWeaponCyclesDetermined = false;
+    public static long tickUpdateSettings = -1;
+    public static long tickCount = 0;
+    public static bool configCreated = false;
     public void Update()
     {
+        if(configCreated == false && MonoSingleton<ColorBlindSettings>.Instance != null)
+        {
+            //was in awake
+            //done to make variantColors work properly because ColorBlindSettings is null on game start
+            configCreated = true;
+            PluginConfig.InitActionSmootheningConfigs();
+            PluginConfig.InitVanillaWeaponCycles();
+            PluginConfig.InitWeaponCycles();
+            PluginConfig.WeaponVariantBindsConfig();
+        }
+
+        if(!modEnabled) {return;}
         tickCount++;
-        if(tickCount == PluginConfig.tickUpdateSettings + 2) //yet more jank just for this stupid config... we need to wait so that the config fields update values because they DO NOT do it during the tick.
-        {
-            PluginConfig.UpdateSettings();
-        }
-        if(tickCount > tickCountUpdateVanillaWeaponCycles + 100) //this is bad
-        {
-            PluginConfig.DetermineVanillaWeaponCycles();
-            tickCountUpdateVanillaWeaponCycles = tickCount;
-        }
-        if(!IsGameplayScene() || !modEnabled || IsMenu()) {return;}
+        if(tickUpdateSettings == tickCount) {PluginConfig.UpdateSettings();} //this is very stupid, has to do with how the value of the field is NOT updated on the same tick that it is changed in game, and its not obvious which one changed. This is the least spaghetti option
+
+        if(!IsGameplayScene() || IsMenu()) {return;}
+        if(VanillaWeaponCyclesDetermined == false) {PluginConfig.DetermineVanillaWeaponCycles();}
         InputLogicMAIN();
+        ActionSmoothening.ActionSmootheningLogicMAIN();
     }
 }

@@ -63,6 +63,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>libs\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>libs\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
