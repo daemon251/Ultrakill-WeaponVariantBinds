@@ -719,7 +719,7 @@ public class ActionSmoothening
         [HarmonyPrefix]
         private static bool Prefix(int targetSlotIndex, int? targetVariationIndex = null, bool useRetainedVariation = false, bool cycleSlot = false, bool cycleVariation = false)
         {
-            //if(!actionSmootheningEnabled || !Plugin.modEnabled) {return true;}
+            if(Plugin.modEnabled == false || actionSmootheningEnabled == false) {return true;}
             //return false;
             if(targetSlotIndex > 5) {return true;} //remove base game weapon switching except for slot 6
             else {return false;}
@@ -832,6 +832,7 @@ public class ActionSmoothening
         [HarmonyPrefix]
         private static bool Prefix(RocketLauncher __instance)
         {
+            if(Plugin.modEnabled == false || actionSmootheningEnabled == false) {return true;}
             if(forceFirceNapalm && __instance.GetComponent<RocketLauncher>().variation == 2) 
             {
                 if (!(bool) (UnityEngine.Object) MonoSingleton<ColorBlindSettings>.Instance)
@@ -929,6 +930,7 @@ public class ActionSmoothening
         [HarmonyPrefix]
         private static bool Prefix(Railcannon __instance)
         {
+            if(Plugin.modEnabled == false || actionSmootheningEnabled == false) {return true;}
             if(forceFirceZoom)
             {
                 if ((double) __instance.wid.delay > 0.0 && (double) __instance.altCharge < (double) __instance.wc.raicharge)
