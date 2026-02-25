@@ -1,6 +1,6 @@
 # WARNING
 
-Updated for ULTRA_REVAMP. As of writing, you *must* have HideManagerGameObject set to true in BepInEx.cfg.
+Updated for FRAUD. As of writing, you *must* have HideManagerGameObject set to true in BepInEx.cfg.
 
 Raise an issue on the github project or contact me at discord preferably through the New Blood discord ultrakill-modding channel at: daemon8363
 
