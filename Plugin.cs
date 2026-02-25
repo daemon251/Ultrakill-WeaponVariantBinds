@@ -637,6 +637,17 @@ public class Plugin : BaseUnityPlugin
     public static long tickUpdateSettings = -1;
     public static long tickCount = 0;
     public static bool configCreated = false;
+
+    [HarmonyPatch(typeof(GunControl), "UpdateWeaponList")]
+    public class UpdateWeaponListPatch
+    {
+        [HarmonyPostfix]
+        private static void Postfix()
+        {
+            //fixes kit update issues
+            VanillaWeaponCyclesDetermined = false;
+        }
+    }
     public void Update()
     {
         if(configCreated == false && MonoSingleton<ColorBlindSettings>.Instance != null)

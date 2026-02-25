@@ -865,6 +865,8 @@ public class PluginConfig
         vanillaWeaponCycles[i].skipOverThisCycle = skipOverWeaponCycleField.value;
 
         ConfigHeader customWeaponCycleWeaponsHeader = new ConfigHeader(newWeaponCyclePanel, "Weapons");
+        ConfigHeader warningHeader = new ConfigHeader(newWeaponCyclePanel, "The weapons in this cycle are set in the weapon terminal.");
+        warningHeader.textSize = 12;
 
         for(int j = 0; j < 3; j++)
         {
