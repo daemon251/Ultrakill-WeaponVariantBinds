@@ -131,6 +131,7 @@ public class Plugin : BaseUnityPlugin
                             }
                         }
                         wcArray[1] = PluginConfig.weaponCycles[index];
+                        //if(index == -1) {wcArray[1] = PluginConfig.vanillaWeaponCycles[4]; logger.LogInfo("abcd");}
                     }
                 }
                 else {break;}
@@ -159,8 +160,13 @@ public class Plugin : BaseUnityPlugin
                     }
                 }
             }
-            for(int i = 0; i < PluginConfig.numWeaponCyclesActive; i++)
+            for(int i = 0; i < PluginConfig.numWeaponCyclesActive + 1; i++)
             {
+                if(i == PluginConfig.numWeaponCyclesActive) 
+                {   
+                    wcArray[0] = wcArray[1]; wcArray[1] = PluginConfig.vanillaWeaponCycles[0];
+                    goto end;
+                }
                 bool emptyArray = true;
                 for(int j = 0; j < PluginConfig.weaponCycles[index1].weaponEnums.Length; j++)
                 {
@@ -218,8 +224,13 @@ public class Plugin : BaseUnityPlugin
                     }
                 }
             }
-            for(int i = PluginConfig.weaponCycles.Length - 1; i >= 0 ; i += -1)
+            for(int i = PluginConfig.weaponCycles.Length - 1; i >= -1; i += -1)
             {
+                if(i == -1) 
+                {   
+                    wcArray[0] = wcArray[1]; wcArray[1] = PluginConfig.vanillaWeaponCycles[4];
+                    goto end;
+                }
                 bool emptyArray = true;
                 for(int j = 0; j < PluginConfig.weaponCycles[index1].weaponEnums.Length; j++)
                 {
@@ -360,30 +371,28 @@ public class Plugin : BaseUnityPlugin
                             wc.currentIndex = wc.weaponEnums.Length - 1;
                             if(scrollWeapons)
                             {
-                                //logger.LogInfo("aaaa");
                                 SwitchToPrevCustomSlot();
                                 break;
                             }
                         }
                         if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None || wc.ignoreInCycle[wc.currentIndex] == true) {wc.currentIndex += -1;}
                     }
-                    //logger.LogInfo(wc.weaponEnums[wc.currentIndex]);
-                    //logger.LogInfo(wc.currentIndex + " bbbb");
                     int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
                     newSlot = arr[0]; newVariation = arr[1];
                     weaponScrollCooldown = PluginConfig.scrollCooldownTime;
-                    //logger.LogInfo(newSlot + " " + newVariation);
                 }
             }
-            if(scrollEnabled && !scrollVariation && scrollWeapons)
+            if(scrollEnabled && !scrollVariation && scrollWeapons && weaponScrollCooldown <= 0)
             {
                 if(value >= 0.1f)
                 {
                     SwitchToNextCustomSlot();
+                    weaponScrollCooldown = PluginConfig.scrollCooldownTime;
                 }
                 if(value <= -0.1f)
                 {
                     SwitchToPrevCustomSlot();
+                    weaponScrollCooldown = PluginConfig.scrollCooldownTime;
                 }
             }
 
