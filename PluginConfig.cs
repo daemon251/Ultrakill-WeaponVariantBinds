@@ -66,6 +66,7 @@ public class PluginConfig
     }
     //1 is revolver primary, 2 is revolver secondary, 3 is shotgun primary, etc. not all indexes nessecarily must exist but for consistency's sake its done like this
     public static bool actionSmootheningEnabled = false;
+    public static float scrollCooldownTime = 0.2f;
     public enum WeaponEnum {None,
     Piercer_Revolver, Marksman_Revolver, Sharpshooter_Revolver, 
     Core_Eject_Shotgun, Pump_Charge_Shotgun, Sawed_On_Shotgun, 
@@ -995,6 +996,11 @@ public class PluginConfig
         ConfigPanel advancedOptionsField = new ConfigPanel(config.rootPanel, "Advanced Options", "advancedOptionsPanel");
         ConfigHeader infoHeaderVariantBinds = new ConfigHeader(advancedOptionsField, "Variant Binds 1-3 are in Ultrakill's main controls settings.");
         infoHeaderVariantBinds.textSize = 12;
+
+        FloatField scrollCooldownTimeField = new FloatField(advancedOptionsField, "Scroll Cooldown Time", "scrollCooldownTime", 0.1f, 0f, 100f);
+        scrollCooldownTimeField.onValueChange += (FloatField.FloatValueChangeEvent e) => {scrollCooldownTime = e.value;};
+        scrollCooldownTime = scrollCooldownTimeField.value;
+
         for(int i = 3; i < 100; i++)
         {
             WeaponVariantBindsConfigPart2(advancedOptionsField, i); //this is required explicitly so the value of i is properly passed on for OnValueChange of fields.

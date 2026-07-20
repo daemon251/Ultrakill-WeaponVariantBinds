@@ -15,6 +15,8 @@ namespace WeaponVariantBinds;
 //dual wield
 //DetermineVanillaWeaponCycles(); //this also needs to be called on kit change
 
+//to do: this is severely f ucked. rewrite all of this
+
 [BepInPlugin("WeaponVariantBinds", "WeaponVariantBinds", "0.01")]
 public class Plugin : BaseUnityPlugin
 {
@@ -308,6 +310,8 @@ public class Plugin : BaseUnityPlugin
             }
         }
     }
+
+    public static float weaponScrollCooldown = 0.25f;
     public static void ScrollLogic() //bugs out if you do it too fast
     {
         //this is slighlty buggy because we aren't preventing base game scrolling, and my version and the game's version of scrolling definitions are slightly different
@@ -324,7 +328,7 @@ public class Plugin : BaseUnityPlugin
             float value = Input.GetAxis("Mouse ScrollWheel") * mult; 
             //float value = Mouse.current.scroll.ReadValue().y * mult; //copied from guncontrol, wish I could use this but Mouse is some mystery object there I cant use
 
-            if(scrollEnabled && scrollVariation)
+            if(scrollEnabled && scrollVariation && weaponScrollCooldown <= 0)
             {
                 if(value >= 0.1f)
                 {
@@ -344,6 +348,7 @@ public class Plugin : BaseUnityPlugin
                     }
                     int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
                     newSlot = arr[0]; newVariation = arr[1];
+                    weaponScrollCooldown = PluginConfig.scrollCooldownTime;
                 }
                 if(value <= -0.1f)
                 {
@@ -355,14 +360,19 @@ public class Plugin : BaseUnityPlugin
                             wc.currentIndex = wc.weaponEnums.Length - 1;
                             if(scrollWeapons)
                             {
+                                //logger.LogInfo("aaaa");
                                 SwitchToPrevCustomSlot();
                                 break;
                             }
                         }
                         if(wc.weaponEnums[wc.currentIndex] == PluginConfig.WeaponEnum.None || wc.ignoreInCycle[wc.currentIndex] == true) {wc.currentIndex += -1;}
                     }
+                    //logger.LogInfo(wc.weaponEnums[wc.currentIndex]);
+                    //logger.LogInfo(wc.currentIndex + " bbbb");
                     int[] arr = PluginConfig.convertWeaponEnumToSlotVariation(wc.weaponEnums[wc.currentIndex]);
                     newSlot = arr[0]; newVariation = arr[1];
+                    weaponScrollCooldown = PluginConfig.scrollCooldownTime;
+                    //logger.LogInfo(newSlot + " " + newVariation);
                 }
             }
             if(scrollEnabled && !scrollVariation && scrollWeapons)
@@ -376,6 +386,8 @@ public class Plugin : BaseUnityPlugin
                     SwitchToPrevCustomSlot();
                 }
             }
+
+            weaponScrollCooldown += -Time.unscaledDeltaTime;
         }
     }
     public static void AlterVariationLogic()
@@ -615,7 +627,6 @@ public class Plugin : BaseUnityPlugin
             {
                 //dualwields[i].currentWeapon = weapon;
                 dualwields[i].UpdateWeapon(weapon);
-                //logger.LogInfo(i + " " + dualwields[i].currentWeapon);
             }
         }
         else if(weapon != MonoSingleton<GunControl>.Instance.currentWeapon) //if a weapon slot change not made by us is detected
@@ -648,6 +659,23 @@ public class Plugin : BaseUnityPlugin
             VanillaWeaponCyclesDetermined = false;
         }
     }
+
+    /*[HarmonyPatch(typeof(GunControl), "Update")]
+    public class GunControlUpdatePatch
+    {
+        [HarmonyPrefix]
+        private static bool Prefix(GunControl __instance)
+        {
+            //overwrite
+            if (__instance.inman.InputSource.Slot6.WasPerformedThisFrame && (__instance.slot6.Count > 1 || __instance.currentSlotIndex != 6))
+            {
+                if (__instance.slot6.Count > 0 && (UnityEngine.Object) __instance.slot6[0] != (UnityEngine.Object) null)
+                __instance.SwitchWeapon(6, useRetainedVariation: true);
+            }
+            return false;
+        }
+    }*/
+
     public void Update()
     {
         if(configCreated == false && MonoSingleton<ColorBlindSettings>.Instance != null)
